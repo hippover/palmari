@@ -2,23 +2,17 @@ from typing import Any
 import numpy as np
 from scipy.signal import convolve2d
 from skimage.morphology import square
-from skimage.segmentation import clear_border
 from skimage.feature import peak_local_max
 from scipy.ndimage import convolve1d
-from dask_image.ndfilters import convolve, percentile_filter
+from dask_image.ndfilters import percentile_filter
 import pandas as pd
 from math import factorial
 import warnings
-import os
-from multiprocessing import Pool
-from functools import partial
 import logging
-from tqdm import tqdm
 import dask.array as da
 import dask.dataframe as dd
 from dask import delayed
 from dask.diagnostics import ProgressBar
-import matplotlib.pyplot as plt
 
 
 def lsradialcenterfit(m, b, w):
@@ -83,7 +77,8 @@ def radialCenter(I):
     xcentroid = np.sum(dImag2 * xm) / sdI2
     ycentroid = np.sum(dImag2 * ym) / sdI2
     w = dImag2 / np.sqrt(
-        (xm - xcentroid) * (xm - xcentroid) + (ym - ycentroid) * (ym - ycentroid)
+        (xm - xcentroid) * (xm - xcentroid)
+        + (ym - ycentroid) * (ym - ycentroid)
     )
 
     xc, yc = lsradialcenterfit(m, b, w)
@@ -150,7 +145,9 @@ def b_splines(x, scale, order):
     n = order
     b = 0.0
     for k in range(n + 2):
-        increment = ((-1) ** k) * (n + 1) / (factorial(n + 1 - k) * factorial(k))
+        increment = (
+            ((-1) ** k) * (n + 1) / (factorial(n + 1 - k) * factorial(k))
+        )
         increment *= plus_func(x_ - k + (n + 1) / 2, n)
         b += increment
     return b
@@ -174,7 +171,9 @@ def make_filters(scale, order, L):
     values = [b_splines(x, scale, order) for x in np.arange(L)]
     g1 = np.concatenate([values[1:][::-1], values], axis=0)
     g1 /= np.sum(g1)
-    g2 = np.array([0.0 if i % 2 == 1 else g1[i // 2] for i in range(2 * len(g1) - 1)])
+    g2 = np.array(
+        [0.0 if i % 2 == 1 else g1[i // 2] for i in range(2 * len(g1) - 1)]
+    )
 
     return g1, g2
 
@@ -198,14 +197,20 @@ def SMLM_localization(
     subpixel_mode: str = "radial",
     frame_start: int = 0,  # shift frame index by this
 ):
-    logging.debug("Getting localizations on data of shape %d %d %d" % data.shape)
+    logging.debug(
+        "Getting localizations on data of shape %d %d %d" % data.shape
+    )
 
     V0, V1, V2 = SMLM_filtering(data, filter_size, scale=scale)
     F1 = V0 - V1
     F2 = V1 - V2
 
-    stdF1 = np.reshape(np.std(F1, axis=(1, 2)), (-1, 1, 1))  # 1 value per image
-    structure = np.stack([np.zeros((3, 3)), square(3), np.zeros((3, 3))], axis=0)
+    stdF1 = np.reshape(
+        np.std(F1, axis=(1, 2)), (-1, 1, 1)
+    )  # 1 value per image
+    structure = np.stack(
+        [np.zeros((3, 3)), square(3), np.zeros((3, 3))], axis=0
+    )
     structure = np.array(structure, dtype=int)
 
     R_detection = 3
@@ -248,7 +253,8 @@ def SMLM_localization(
             continue
         try:
             ratio = (
-                np.max(F2[t, x_min : (x_max + 1), y_min : (y_max + 1)]) / stdF1[t, 0, 0]
+                np.max(F2[t, x_min : (x_max + 1), y_min : (y_max + 1)])
+                / stdF1[t, 0, 0]
             )
         except:
             logging.debug(F2[t].shape)

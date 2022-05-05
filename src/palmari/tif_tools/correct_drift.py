@@ -1,5 +1,4 @@
 import logging
-from joblib import delayed
 from scipy.interpolate import interp1d
 import numpy as np
 from tqdm import tqdm
@@ -53,10 +52,12 @@ def correct_drift(pos, L=0.2, step_size=0.03, prog_bar_position=None):
         )
 
         pos_1 = [
-            pos.loc[pos.n_bin == b, ["x", "y"]].copy().values for b in sorted_bins[:-1]
+            pos.loc[pos.n_bin == b, ["x", "y"]].copy().values
+            for b in sorted_bins[:-1]
         ]
         pos_2 = [
-            pos.loc[pos.n_bin == b, ["x", "y"]].copy().values for b in sorted_bins[1:]
+            pos.loc[pos.n_bin == b, ["x", "y"]].copy().values
+            for b in sorted_bins[1:]
         ]
 
         shifts_del = []
