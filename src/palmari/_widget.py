@@ -8,7 +8,7 @@ class PalmariWidget(TifPipelineWidget):
         tp = TifPipeline.from_dict(
             {
                 "name": "napari-default",
-                "movie_preprocessors": [{"RemoveBackgroundFluorescence": {}}],
+                "movie_preprocessors": [{"WindowPercentileFilter": {}}],
                 "loc_processors": [{"DriftCorrector": {}}],
             }
         )
