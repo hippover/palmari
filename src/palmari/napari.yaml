@@ -3,8 +3,8 @@ display_name: PALMari
 contributions:
   commands:
     - id: palmari.make_qwidget
-      python_name: palmari._widget:ExampleQWidget
-      title: Make example QWidget
+      python_name: palmari._widget:PalmariWidget
+      title: Open
   widgets:
     - command: palmari.make_qwidget
-      display_name: Example QWidget
+      display_name: PALMari
