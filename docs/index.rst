@@ -9,9 +9,12 @@ Welcome to palmari's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
+   :hidden:
 
-
+   TIF processing pipeline <pipeline>
+   Data structure <data>
+   API index <api/modules>
 
 Indices and tables
 ==================

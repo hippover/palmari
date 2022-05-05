@@ -26,8 +26,8 @@ if TYPE_CHECKING:
 
 class Acquisition:
     """
-    Une Acquisition correspond à une ROI filmée en PALM.
-    Elle fait éventuellement partie d'une Experiment.
+    An acquisition corresponds to a PALM movie.
+    It is part of an :py:class:`Experiment`, and bound to a :py:class:`TifPipeline` with which it is processed.
     """
 
     def __init__(
@@ -47,6 +47,12 @@ class Acquisition:
 
     @property
     def image(self) -> da.Array:
+        """
+        The actual movie, loaded with Dask.
+
+        Returns:
+            da.Array: the movie.
+        """
         if not hasattr(self, "_image"):
             logging.info("Loading tif file %s" % self.tif_file)
             # self._image = tifffile.imread(
@@ -58,9 +64,14 @@ class Acquisition:
                 )
         return self._image
 
-    def get_property(self, col: str):
-        """
-        col: column from exp's index_df to look into
+    def get_property(self, col: str) -> Any:
+        """Access an acquisition's property, read from its experiment's index table.
+
+        Args:
+            col (str): name of the index table column to look into
+
+        Returns:
+            Any: value of the corresponding row x column in the experiment's index table
         """
         df = self.experiment.index_df
         return df.loc[df.file == self.tif_file, col].values[0]
@@ -87,7 +98,7 @@ class Acquisition:
         self._locs = value
 
     @property
-    def locs_path(self):
+    def locs_path(self) -> str:
         if not hasattr(self, "_locs_path"):
             self._locs_path = self.export_root + ".locs"
         return self._locs_path
@@ -110,7 +121,7 @@ class Acquisition:
         self._raw_locs = value
 
     @property
-    def raw_locs_path(self):
+    def raw_locs_path(self) -> str:
         if not hasattr(self, "_raw_locs_path"):
             self._raw_locs_path = self.export_root + ".raw_locs"
         return self._raw_locs_path
@@ -128,7 +139,7 @@ class Acquisition:
         return self._intensity
 
     @property
-    def intensity_path(self):
+    def intensity_path(self) -> str:
         if not hasattr(self, "_intensity_path"):
             self._intensity_path = self.export_root + ".int"
         return self._intensity_path
@@ -146,31 +157,31 @@ class Acquisition:
         return self._tubeness
 
     @property
-    def tubeness_path(self):
+    def tubeness_path(self) -> str:
         if not hasattr(self, "_tubeness_path"):
             self._tubeness_path = self.export_root + ".tubeness"
         return self._tubeness_path
 
     @property
-    def is_processed(self):
+    def is_processed(self) -> bool:
         return (
             self.is_localized and self.is_tracked
         )  # and self.intensity_is_computed
 
     @property
-    def is_localized(self):
+    def is_localized(self) -> bool:
         return os.path.exists(self.raw_locs_path)
 
     @property
-    def intensity_is_computed(self):
+    def intensity_is_computed(self) -> bool:
         return os.path.exists(self.intensity_path)
 
     @property
-    def tubeness_is_computed(self):
+    def tubeness_is_computed(self) -> bool:
         return os.path.exists(self.tubeness_path)
 
     @property
-    def drift_is_corrected(self):
+    def drift_is_corrected(self) -> bool:
         return os.path.exists(self.locs_path)
 
     @property

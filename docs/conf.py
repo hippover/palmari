@@ -15,11 +15,50 @@
 import sys
 import os
 import shlex
+import shutil
+
+__location__ = os.path.dirname(__file__)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.join(__location__, "../src"))
+
+# -- Run sphinx-apidoc -------------------------------------------------------
+# This hack is necessary since RTD does not issue `sphinx-apidoc` before running
+# `sphinx-build -b html . _build/html`. See Issue:
+# https://github.com/readthedocs/readthedocs.org/issues/1139
+# DON'T FORGET: Check the box "Install your project inside a virtualenv using
+# setup.py install" in the RTD Advanced Settings.
+# Additionally it helps us to avoid running apidoc manually
+
+try:  # for Sphinx >= 1.7
+    from sphinx.ext import apidoc
+except ImportError:
+    from sphinx import apidoc
+
+output_dir = os.path.join(__location__, "api")
+module_dir = os.path.join(__location__, "../src/palmari")
+try:
+    shutil.rmtree(output_dir)
+except FileNotFoundError:
+    pass
+
+try:
+    import sphinx
+
+    cmd_line = (
+        f"sphinx-apidoc --implicit-namespaces -f -o {output_dir} {module_dir}"
+    )
+
+    args = cmd_line.split(" ")
+    if tuple(sphinx.__version__.split(".")) >= ("1", "7"):
+        # This is a rudimentary parse_version to avoid external dependencies
+        args = args[1:]
+
+    apidoc.main(args)
+except Exception as e:
+    print("Running `sphinx-apidoc` failed!\n{}".format(e))
 
 # -- General configuration ------------------------------------------------
 
@@ -31,6 +70,15 @@ import shlex
 # ones.
 extensions = [
     "sphinx.ext.ifconfig",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.coverage",
+    "sphinx.ext.doctest",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -164,7 +212,7 @@ html_static_path = ["_static"]
 # html_additional_pages = {}
 
 # If false, no module index is generated.
-# html_domain_indices = True
+html_domain_indices = True
 
 # If false, no index is generated.
 # html_use_index = True

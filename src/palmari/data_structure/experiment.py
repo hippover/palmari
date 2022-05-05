@@ -185,12 +185,17 @@ class Experiment:
         keys of the dict are column names
         values are used to fill the columns, using the TIF file name of each acquisition
         values can be :
+
         - string : True if the file name contains that string
         - int : the i-th part of the file name, when split using the filesystem separator
         - callable : callable(filename)
 
         for instance
-        {"condition":get_condition_from_name}
+
+        .. code-block:: python3
+
+            {"condition":get_condition_from_name}
+
         """
         return {}
 
