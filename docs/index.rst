@@ -52,4 +52,5 @@ Contents
    Data structure <data>
    Napari plugin <napari>
    Examples <examples>
+   Authors <authors>
    API index <api/modules>
