@@ -3,7 +3,9 @@ from sklearn.neighbors import radius_neighbors_graph
 import pandas as pd
 
 
-def density_filtering(pos: pd.DataFrame, radius: float = 0.2, n_neighbors: int = None) -> pd.Series:
+def density_filtering(
+    pos: pd.DataFrame, radius: float = 0.2, n_neighbors: int = None
+) -> pd.Series:
     # Filtering based on number of neighbors in radius
     A = radius_neighbors_graph(pos[["x", "y"]].values, radius=radius)
     N = np.reshape(np.array(A.sum(axis=0)), (-1,))

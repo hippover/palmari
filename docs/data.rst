@@ -62,7 +62,7 @@ automatically populate the columns from the file names. It is a dictionnary whos
 
 .. code-block:: python3
 
-    from palm_tools import Experiment
+    from palmari import Experiment
 
     def myfunc(s:str):
         return s.split("_")[4].upper()

@@ -6,7 +6,7 @@ from dask_image.ndfilters import convolve
 
 def smooth_average(x, w):
     r = (da.arange(w) - w / 2) / (w / 6)
-    gaussian = da.exp(-0.5 * r ** 2)
+    gaussian = da.exp(-0.5 * r**2)
     gaussian /= da.sum(gaussian)
     return convolve(x, gaussian, "reflect").compute()
 
@@ -23,5 +23,8 @@ def mean_intensity_center(data):
     average = center.mean(axis=(1, 2))
     smoothed_average = smooth_average(average, min(500, average.shape[0]))
     return pd.DataFrame.from_dict(
-        {"intensity": smoothed_average, "frame": np.arange(smoothed_average.shape[0])}
+        {
+            "intensity": smoothed_average,
+            "frame": np.arange(smoothed_average.shape[0]),
+        }
     )

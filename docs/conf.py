@@ -96,8 +96,8 @@ source_suffix = ".rst"
 main_doc = "index"
 
 # General information about the project.
-project = "palmari"
-copyright = "2015, Hippolyte Verdier"
+project = "Palmari"
+copyright = "2022, Hippolyte Verdier"
 author = "Hippolyte Verdier"
 
 # The version info for the project you're documenting, acts as replacement for

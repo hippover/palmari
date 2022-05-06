@@ -41,8 +41,7 @@ the coverage at least stays the same before you submit a pull request.
 
 ## License
 
-Distributed under the terms of the [MIT] license,
-"palmari" is free and open source software
+Distributed under the terms of the [CeCILL] license.
 
 ## Issues
 
@@ -65,3 +64,4 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [tox]: https://tox.readthedocs.io/en/latest/
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
+[CeCILL]: http://cecill.info/index.en.html

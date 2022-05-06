@@ -6,14 +6,14 @@ TIF processing pipeline
 The ``TifPipeline`` class
 -------------------------
 
-PALM-tols provides a customizable pipeline structure for extracting localizations and tracks from PALM movies under the form of files.
-These steps are handled by the ``TifPipeline`` class.
+Palmari provides a customizable pipeline structure for extracting localizations and tracks from PALM movies.
+These steps are handled by the :py:class:`TifPipeline` class.
 
 It is very easy to instanciate a default pipeline, containing only the minimal localization and tracking steps with default parameters :
 
 .. code-block:: python3
 
-    from palm_tools import TifPipeline
+    from palmari import TifPipeline
 
     tp = TifPipeline.default_with_name("my_pipeline")
 
@@ -35,7 +35,7 @@ By default, it will not re-process movies on which it has already been run.
 Processing steps
 ----------------
 
-Each step of the pipeline is an instance of a ``ProcessingStep`` subclass and takes as input the output of its predecessor.
+Each step of the pipeline is an instance of a :py:class:`ProcessingStep` subclass and takes as input the output of its predecessor.
 Steps are divided in four main categories :
 
 1. Optionally, a few **movie pre-processors** (subclasses of ``MoviePreprocessor``). 
@@ -53,6 +53,21 @@ Steps are divided in four main categories :
    This step links consecutive localizations of one same particle, by adding an `n` column, correspondoing to the particle's ID, to the localizations dataframe. 
    It takes as input the localizations dataframe.
 
++-------+--------------------------+------------+-----------------------+------------------------------------+
+| Order | Type of step             | Mandatory  | Multiple sub-steps ?  | Included                           |
++=======+==========================+============+=======================+====================================+
+| 1     | Image processing         | ✅         |  ✅                   | :py:class:`WindowPercentileFilter` |
++-------+--------------------------+------------+-----------------------+------------------------------------+
+| 2     | Localizer                | ❌         |  ❌                   | :py:class:`DefaultLocalizer`       |
++-------+--------------------------+------------+-----------------------+------------------------------------+
+| 3     | Localizations processing | ✅         |  ✅                   | :py:class:`DriftCorrector`         |
++-------+--------------------------+------------+-----------------------+------------------------------------+
+| 4     | Tracker                  | ❌         |  ❌                   | :py:class:`TrackpyTracker`         |
++-------+--------------------------+------------+-----------------------+------------------------------------+
+
+In the table, "Mandatory" means that a pipeline must have one such step. On the contrary, non-mandatory steps can be omitted. 
+If a pipeline does not mention any particular class/setting to use for a mandatory step, the default class for this step will be used, with default parameters.
+
 Use built-in steps
 ------------------
 
@@ -64,6 +79,7 @@ PALM-tools comes with a few built-in processing steps, which you can use to comp
 - ``WindowPercentileFilter`` clips pixel values by considering the series of values in a time window and 
   using a given percentile as the minimum, setting all lower values of intensity to this minimal value.
   This is meant to remove background fluorescence. Parameters are :
+
     ``window_size`` : the size of the considered window, in number of frames
 
     ``percentile`` : the threshold percentage. The higher it is, 
@@ -128,6 +144,8 @@ You'll then be able to load it in a script or notebook using ``from_yaml()``.
 
 .. image:: pipeline_edit.png
 
+.. _own_steps:
+
 Make your own processing steps !
 --------------------------------
 
@@ -139,8 +157,19 @@ To use the new state-of-the-art localizer instead of the rudimentary one provide
 If you want to use your own steps, subclass the corresponding abstract base class : 
 for a localizer, ``Localizer``, for a movie pre-processor, ``MoviePreprocessor``, etc...
 
-One method must be overriden in your subclass, depending on the type of step. 
-If it's a tracker, then you have to implement ``track()``, iF it's a movie pre-processor, write your own ``preprocess()``. 
+One method must be overriden in your subclass, whose name depends on the type of step, as summarized below.
+
++-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
+| Order | Type of step             | Mandatory  | Base class                    | Method to override        | Multiple sub-steps ? | Included                           |
++=======+==========================+============+===============================+===========================+======================+====================================+
+| 1     | Image processing         | ✅         | :py:class:`MoviePreprocessor` | :py:func:`preprocess`     | ✅                   | :py:class:`WindowPercentileFilter` |
++-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
+| 2     | Localizer                | ❌         | :py:class:`Localizer`         | :py:func:`localize_slice` | ❌                   | :py:class:`DefaultLocalizer`       |
++-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
+| 3     | Localizations processing | ✅         | :py:class:`LocsProcessor`     | :py:func:`process`        | ✅                   | :py:class:`DriftCorrector`         |
++-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
+| 4     | Tracker                  | ❌         | :py:class:`Tracker`           | :py:func:`track`          | ❌                   | :py:class:`TrackpyTracker`         |
++-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
 
 .. important::
 

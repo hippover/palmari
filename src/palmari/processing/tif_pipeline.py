@@ -337,8 +337,9 @@ class TifPipeline:
     def from_dict(cls, p: Dict):
         """
         Instantiate from a dictionnary.
-        example Dictionnary :
-        ..code python3
+        Here's an example Dictionnary which could be passed as an argument :
+
+        .. code-block:: python3
 
             {
                 "name":"my_pipeline",
@@ -363,6 +364,7 @@ class TifPipeline:
                 # if it's movie_preprocessors, then no movie_preprocessors will be used (same for loc_processors)
                 # it it's localizer or tracker, then the default classes will be used.
             }
+
         """
 
         def instantiate_from_dict(d):
