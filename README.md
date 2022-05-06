@@ -1,11 +1,10 @@
 # Palmari
 
-[![License](https://img.shields.io/pypi/l/palmari.svg?color=green)](https://github.com/hippover/palmari/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/palmari.svg?color=green)](https://pypi.org/project/palmari)
+[![Documentation Status](https://readthedocs.org/projects/palmari/badge/?version=latest)](https://palmari.readthedocs.io/en/latest/?badge=latest)
 [![Python Version](https://img.shields.io/pypi/pyversions/palmari.svg?color=green)](https://python.org)
 [![tests](https://github.com/hippover/palmari/workflows/tests/badge.svg)](https://github.com/hippover/palmari/actions)
-[![codecov](https://codecov.io/gh/hippover/palmari/branch/main/graph/badge.svg)](https://codecov.io/gh/hippover/palmari)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/palmari)](https://napari-hub.org/plugins/palmari)
+[![License](https://img.shields.io/pypi/l/palmari.svg?color=green)](https://github.com/hippover/palmari/raw/main/LICENSE)
 
 A processing pipeline for PALM movies analysis (pre-processing, localization, drifft correction, tracking).
 
