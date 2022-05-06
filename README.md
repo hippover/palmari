@@ -1,4 +1,4 @@
-# palmari
+# Palmari
 
 [![License](https://img.shields.io/pypi/l/palmari.svg?color=green)](https://github.com/hippover/palmari/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/palmari.svg?color=green)](https://pypi.org/project/palmari)
@@ -7,7 +7,11 @@
 [![codecov](https://codecov.io/gh/hippover/palmari/branch/main/graph/badge.svg)](https://codecov.io/gh/hippover/palmari)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/palmari)](https://napari-hub.org/plugins/palmari)
 
-A processing pipeline for PALM movies analysis (pre-processing, localization, drifft correction, tracking)
+A processing pipeline for PALM movies analysis (pre-processing, localization, drifft correction, tracking).
+
+Check out the [documentation] to get started.
+
+![napari_plugin](docs/images/plugin_steps.png "Fine-tune your pipelines on a movie, run it on a batch easily !")
 
 ----------------------------------
 
@@ -65,3 +69,4 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [pip]: https://pypi.org/project/pip/
 [PyPI]: https://pypi.org/
 [CeCILL]: http://cecill.info/index.en.html
+[documentation]: https://palmari.readthedocs.io/en/latest/
