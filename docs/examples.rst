@@ -2,4 +2,7 @@
 Examples
 ==========
 
-- **Minimal pipeline** : [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/googlecolab/colabtools/blob/master/notebooks/colab-github-demo.ipynb)
+- **Minimal pipeline** : |minimal_pipeline_colab|
+
+.. |minimal_pipeline_colab| image:: https://colab.research.google.com/assets/colab-badge.svg 
+    :target: https://colab.research.google.com/github/hippover/palmari/blob/main/examples/minimalist-pipeline.ipynb
