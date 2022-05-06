@@ -95,7 +95,9 @@ class Experiment:
             logging.info("JSON does not exist, create %s" % json_path)
             pixel_size = 0.097
             try:
-                pixel_size = float(input("Pixel size (in microns) : "))
+                pixel_size = float(
+                    input("Pixel size, in microns (default is 0.097) : ")
+                )
             except BaseException as e:
                 print(e)
                 print(
@@ -106,9 +108,16 @@ class Experiment:
             try:
                 DT = float(
                     input(
-                        "Time interval between successive frames (in seconds) : "
+                        "Time interval between successive frames, in seconds (default is 0.03) : "
                     )
                 )
+            except BaseException as e:
+                print(e)
+                print("Incorrect value, keeping default : %.2f s" % DT)
+
+            file_pattern = "*.tif"
+            try:
+                file_pattern = str(input("File pattern (default is *.tif) : "))
             except BaseException as e:
                 print(e)
                 print("Incorrect value, keeping default : %.2f s" % DT)
@@ -116,6 +125,7 @@ class Experiment:
             exp_info = {
                 "data_path": self.data_folder,
                 "pixel_size": pixel_size,
+                "file_pattern": file_pattern,
                 "DT": DT,
             }
             json.dump(
@@ -126,17 +136,15 @@ class Experiment:
             # Read the JSON file and check that path of origin data is the same
             logging.info("JSON already exists : %s" % json_path)
             exp_info = json.load(open(json_path, "r"))
+
             if not os.path.samefile(self.data_folder, exp_info["data_path"]):
                 logging.debug("Data folder is %s" % self.data_folder)
                 logging.debug(
                     "Data path in JSON in %s" % exp_info["data_path"]
                 )
-                # answer = input("Do you want to continue ? (input 'y' to say yes)")
-                # if answer != "y":
-                #    logging.debug("Please make sure which one is wrong and change it")
-                #    raise
         self.DT = exp_info["DT"]
         self.pixel_size = exp_info["pixel_size"]
+        self.file_pattern = exp_info["file_pattern"]
 
     @property
     def index_df(self) -> pd.DataFrame:
@@ -157,26 +165,6 @@ class Experiment:
         Just saves index_df
         """
         self.index_df.to_csv(self.index_path, index=False)
-
-    """
-    @property
-    def default_processing_run(self) -> TifProcessingRun:
-        if not hasattr(self, "_default_processing_run"):
-            default_processing_run_path = TifProcessingRun.run_data_path(
-                self, "default_run"
-            )
-            default_processing_run_params_path = os.path.join(
-                default_processing_run_path, "run_params.json"
-            )
-            default_processing_params = TifProcessingParameters.from_json(
-                default_processing_run_params_path, use_defaults=True
-            )
-            default_processing_params.save_at(default_processing_run_params_path)
-            self._default_processing_run = TifProcessingRun.from_name(
-                "default_run", experiment=self
-            )
-        return self._default_processing_run
-    """
 
     @property
     def custom_fields(self) -> dict:
@@ -277,10 +265,10 @@ class Experiment:
 
     def scan_folder(self) -> list:
         os.chdir(self.data_folder)
-        roi_files = glob("**/*.tif", recursive=True)
+        roi_files = glob("**/%s" % self.file_pattern, recursive=True)
         roi_files = [
-            f for f in roi_files if os.path.getsize(f) > 5e7
-        ]  # Don't consider files of less than 50Mo
+            f for f in roi_files if os.path.getsize(f) > 1e7
+        ]  # Don't consider files of less than 10Mb
         # TODO: improve filtering here
         return roi_files
 

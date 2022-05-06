@@ -25,6 +25,10 @@ It provides a **customizable pipeline scheme** with the following features :
 - Easily **include your favorite processing steps** in your Palmari pipeline, see :ref:`here <own_steps>` for more details. 
   If it's worth sharing, consider a merge request ! 🫵 
 
+.. figure:: plugin_steps.png
+
+   Visualize processing steps and tweak their parameters with the Napari interface.
+
 .. important::
 
    This package is under development, if you wish to contribute, report a bug or suggest an addition, raise an issue or send an email to hverdier@pasteur.fr.
@@ -47,4 +51,5 @@ Contents
    TIF processing pipeline <pipeline>
    Data structure <data>
    Napari plugin <napari>
+   Examples <examples>
    API index <api/modules>

@@ -406,7 +406,7 @@ class TifPipelineWidget(QWidget):
                 ].to_dict(),
                 symbol="x",
                 size=0.25,
-                edge_width=0.07,
+                edge_width=0.1,
                 face_color="transparent",
                 edge_color="ratio",
                 edge_contrast_limits=(

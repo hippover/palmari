@@ -42,8 +42,13 @@ class Acquisition:
         self.export_root = os.path.join(
             self.experiment.export_folder,
             self.tif_pipeline.name,
-            self.experiment.get_ID_of_acq(self),
+            ".".join(self.tif_file.split(".")[:-1]),
         )
+        logging.debug(
+            "export_root : file %s -> %s" % (self.tif_file, self.export_root)
+        )
+        export_parent_folder = os.sep.join(self.export_root.split(os.sep)[:-1])
+        os.makedirs(export_parent_folder, exist_ok=True)
 
     @property
     def image(self) -> da.Array:
