@@ -6,7 +6,7 @@
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/palmari)](https://napari-hub.org/plugins/palmari)
 [![License](https://img.shields.io/pypi/l/palmari.svg?color=green)](https://github.com/hippover/palmari/raw/main/LICENSE)
 
-A processing pipeline for PALM movies analysis (pre-processing, localization, drifft correction, tracking).
+A processing pipeline for PALM movies analysis (pre-processing, localization, drift correction, tracking).
 
 Check out the [documentation] to get started.
 
