@@ -25,7 +25,7 @@ It provides a **customizable pipeline scheme** with the following features :
 - Easily **include your favorite processing steps** in your Palmari pipeline, see :ref:`here <own_steps>` for more details. 
   If it's worth sharing, consider a merge request ! 🫵 
 
-.. figure:: plugin_steps.png
+.. figure:: images/plugin_steps.png
 
    Visualize processing steps and tweak their parameters with the Napari interface.
 

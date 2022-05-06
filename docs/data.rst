@@ -24,7 +24,8 @@ Process batches of movies
 
 Once you have set up your `TifPipeline <tif_pipeline>`_, you might want to run it on all your movies. To do so, simply run the following command. 
 This will create in your experiment's directory a folder named after yout pipeline's name. 
-The processing outputs will be written in this folder and loaded when needed.
+The processing outputs will be written in this folder and loaded when needed. 
+The pipeline's parameters will be saved in your Experiment's ``export_folder``.
 
 .. code-block:: python3
 
@@ -33,9 +34,9 @@ The processing outputs will be written in this folder and loaded when needed.
 The index table
 ^^^^^^^^^^^^^^^
 
-An experiment stores movie-specific information in an index table (``index_df``) in order to be accessible for later analysis.
-which type of cell did you observe, which protein did you look at, how were the cells treated, ...
-Here's an example of what this table might look like.
+An experiment stores movie-specific information in an index table (``index_df``) in order to be accessible for later analysis :
+which type of cell did you observe, which protein did you look at, how were the cells treated, etc... 
+Below is an example of what such a file might look like.
 
 +---------+-------------+------------------+
 | file    | cell_type   | observation_time |
@@ -54,7 +55,7 @@ This information can be entered manually, by editing the corresponding ``.csv`` 
 or by overriding the ``custom_fields`` property of a subclass of ``Experiment`` to 
 automatically populate the columns from the file names. It is a dictionnary whose keys are the desired column names and whose values indicate how to populate the rows.
 
-- If the value is an integer ``i``, the column's rows will take the value of the ``i``-th part of the file path.
+- If the value is an integer ``i``, the column's rows will take the value of the ``i``-th part of the file path (note that it can be negative, if you'd like to start from the end).
 
 - If it is a string, the rows will take the value ``True`` if the file path contains this string, and ``False`` otherwise.
 
@@ -128,3 +129,7 @@ you can visualize the localizations superimposed to the camera recording in Napa
 .. code-block:: python3
 
     acq.view() # View the .tif movie with superimposed localizations and tracks, using Napari.
+
+.. figure:: images/acq_view.png
+
+    There you are ! 

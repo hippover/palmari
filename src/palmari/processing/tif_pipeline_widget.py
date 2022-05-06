@@ -1,17 +1,20 @@
 from __future__ import annotations
-from typing import Any, TYPE_CHECKING
+from typing import Any
 import napari
 from napari.layers import Image
 from qtpy.QtWidgets import (
     QWidget,
     QLabel,
     QVBoxLayout,
+    QHBoxLayout,
     QPushButton,
     QSplitter,
     QGroupBox,
     QFileDialog,
+    QScrollArea,
 )
-import yaml
+
+from magicgui.widgets import FileEdit
 from functools import partial
 
 
@@ -19,11 +22,12 @@ from napari.qt import thread_worker
 from magicgui.widgets import create_widget, Container, ComboBox, FloatSpinBox
 import enum
 import dask.array as da
+import dask_image
 import pandas as pd
 import logging
-
-if TYPE_CHECKING:
-    from .tif_pipeline import TifPipeline, ProcessingStep
+import os
+from ..data_structure.acquisition import Acquisition
+from .tif_pipeline import TifPipeline, ProcessingStep
 
 
 class handled_types(enum.Enum):
@@ -70,8 +74,7 @@ class TifPipelineWidget(QWidget):
         self.to_export = None
         self.viewer = napari_viewer
         self.tp = tif_pipeline
-        self._layers = {}
-        self._buttons = {}
+        self._init_layers_dict()
         self.setup_ui()
 
     def activate_buttons(self, last_clicked: int = 0):
@@ -89,7 +92,8 @@ class TifPipelineWidget(QWidget):
         for idx, existing_layer in original_layers.items():
             if idx >= first_idx_to_remove:
                 self.viewer.layers.remove(existing_layer)
-                self._layers.pop(idx)
+                if idx in self._layers:
+                    self._layers.pop(idx)
                 logging.debug("Removed layer %d" % idx)
 
     def set_input_image(self, layer: Image = None):
@@ -122,27 +126,65 @@ class TifPipelineWidget(QWidget):
     def setup_ui(self):
         main_layout = QVBoxLayout()
 
+        main_layout.addLayout(self.choose_pipeline_layout())
         main_layout.addLayout(self.input_layout())
 
-        preprocessing_widget = self.preprocessing_widget()
-        if preprocessing_widget is not None:
-            main_layout.addWidget(preprocessing_widget)
+        main_layout.addWidget(QLabel("Processing steps :"))
+        self.pipeline_widget = self.get_pipeline_widget()
+        main_layout.addWidget(self.pipeline_widget)
 
-        main_layout.addWidget(self.localization_widget())
-
-        post_processing_widget = self.locs_processing_widget()
-        if post_processing_widget is not None:
-            main_layout.addWidget(post_processing_widget)
-
-        main_layout.addWidget(self.tracking_widget())
-
-        main_layout.addStretch(3)
+        # main_layout.addStretch(-1)
 
         main_layout.addLayout(self.export_layout())
 
         self.setLayout(main_layout)
 
-        self.activate_buttons(last_clicked=-1)
+        self.init_buttons()
+        self.viewer.layers.events.removed.connect(
+            self._possibly_reset_pipeline
+        )
+        self.viewer.layers.events.inserted.connect(
+            self._possibly_activate_button
+        )
+
+    def _init_layers_dict(self):
+        self._layers = {}
+        for layer in self.viewer.layers:
+            if isinstance(layer, Image):
+                self._layers[0] = layer
+
+    def _possibly_reset_pipeline(self, event):
+        key_of_removed = None
+        original_items = dict(self._layers)
+        for key, value in original_items.items():
+            if event.value == value:
+                key_of_removed = key
+                break
+        if key_of_removed is None:
+            return
+        print("Removed item had key %s" % key)
+        for key, value in original_items.items():
+            if key >= key_of_removed:
+                self._layers.pop(key)
+        self.activate_buttons(last_clicked=key - 2)
+
+    def _possibly_activate_button(self, event):
+        if isinstance(event.value, Image):
+            self.activate_buttons(-1)
+
+    def choose_pipeline_layout(self):
+
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(QLabel("Load pipeline :"))
+        self.select_file_widget = FileEdit(
+            mode="r",
+            filter="*.yaml",
+            label="Pipeline file",
+            name="Pipeline file",
+        )
+        self.select_file_widget.changed.connect(self.load_pipeline)
+        main_layout.addWidget(self.select_file_widget._widget._qwidget)
+        return main_layout
 
     def input_layout(self):
         main_layout = QVBoxLayout()
@@ -160,6 +202,7 @@ class TifPipelineWidget(QWidget):
         self.viewer.layers.events.removed.connect(input_widget.reset_choices)
         self.viewer.layers.events.reordered.connect(input_widget.reset_choices)
         self.viewer.events.status.connect(input_widget.reset_choices)
+        self.input_widget = input_widget
 
         delta_t_widget = FloatSpinBox(
             name="delta_t",
@@ -190,7 +233,60 @@ class TifPipelineWidget(QWidget):
             widgets=[input_widget, delta_t_widget, pixel_size_widget]
         )
         main_layout.addWidget(container._widget._qwidget)
+
+        main_box = QGroupBox("Input : ")
+        main_box.setLayout(main_layout)
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(main_box)
+
         return main_layout
+
+    def load_pipeline(self, file_path):
+        try:
+            tp = TifPipeline.from_yaml(file_path)
+        except BaseException as e:
+            logging.error(e)
+            logging.error(
+                "Could not load pipeline from file %s, check the format"
+                % file_path
+            )
+            return
+        self.tp = tp
+        self.pipeline_widget.setWidget(self.get_pipeline_widget())
+        self.setWindowTitle("Palmari | %s" % tp.name)
+        self.init_buttons()
+
+    def init_buttons(self):
+        self.activate_buttons(last_clicked=-1 if 0 in self._layers else -2)
+
+    def get_pipeline_widget(self):
+
+        self._buttons = {}
+
+        pipeline_widget = QWidget()
+        pipeline_layout = QVBoxLayout()
+
+        preprocessing_widget = self.preprocessing_widget()
+        if preprocessing_widget is not None:
+            pipeline_layout.addWidget(preprocessing_widget)
+
+        pipeline_layout.addWidget(self.localization_widget())
+
+        post_processing_widget = self.locs_processing_widget()
+        if post_processing_widget is not None:
+            pipeline_layout.addWidget(post_processing_widget)
+
+        pipeline_layout.addWidget(self.tracking_widget())
+        pipeline_widget.setLayout(pipeline_layout)
+        pipeline_widget.setContentsMargins(0, 0, 10, 0)
+
+        pipeline_container = QScrollArea()
+        pipeline_container.setWidget(pipeline_widget)
+        pipeline_container.setWidgetResizable(False)
+        pipeline_widget.setFixedHeight(pipeline_widget.sizeHint().height())
+        pipeline_container.setWidgetResizable(True)
+
+        return pipeline_container
 
     def export_layout(self):
         main_layout = QVBoxLayout()
@@ -217,6 +313,7 @@ class TifPipelineWidget(QWidget):
     def export_pipeline(self):
         fileName, _ = QFileDialog.getSaveFileName(
             self,
+            directory=self.tp.last_storage_path,
             caption="Save pipeline parameters",
         )
         logging.debug(fileName)
@@ -447,3 +544,37 @@ class TifPipelineWidget(QWidget):
             self._layers[layer_idx].tracks = tracks
 
         self._layers[layer_idx].result = tracks
+
+    @classmethod
+    def view_pipeline(
+        cls,
+        tif_pipeline: TifPipeline,
+        acq: Acquisition = None,
+        tif_file: str = None,
+    ):
+        napari.Viewer()
+        viewer = napari.current_viewer()
+        widget = cls(tif_pipeline, viewer)
+
+        if acq is not None:
+            widget.pixel_size = acq.experiment.pixel_size
+            widget.delta_t = acq.experiment.DT
+            viewer.add_image(
+                data=acq.image,
+                name=acq.tif_file.split(os.path.sep)[-1],
+                scale=(1.0, widget.pixel_size, widget.pixel_size),
+            )
+        elif tif_file is not None:
+            viewer.add_image(
+                data=dask_image.imread.imread(
+                    tif_file,
+                    nframes=300,
+                )
+            )
+
+        viewer.window.add_dock_widget(
+            widget=widget,
+            name="PALM pipeline : %s" % tif_pipeline.name,
+            area="right",
+        )
+        widget.rescale_image_layers()

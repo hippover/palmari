@@ -1,6 +1,7 @@
 from napari import Viewer
 from .processing.tif_pipeline_widget import TifPipelineWidget
 from .processing import TifPipeline
+from .processing.steps import *
 
 
 class PalmariWidget(TifPipelineWidget):

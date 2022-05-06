@@ -56,13 +56,13 @@ Steps are divided in four main categories :
 +-------+--------------------------+------------+-----------------------+------------------------------------+
 | Order | Type of step             | Mandatory  | Multiple sub-steps ?  | Included                           |
 +=======+==========================+============+=======================+====================================+
-| 1     | Image processing         | ✅         |  ✅                   | :py:class:`WindowPercentileFilter` |
+| 1     | Image processing         | ❌         |  ✅                   | :py:class:`WindowPercentileFilter` |
 +-------+--------------------------+------------+-----------------------+------------------------------------+
-| 2     | Localizer                | ❌         |  ❌                   | :py:class:`DefaultLocalizer`       |
+| 2     | Localizer                | ✅         |  ❌                   | :py:class:`DefaultLocalizer`       |
 +-------+--------------------------+------------+-----------------------+------------------------------------+
-| 3     | Localizations processing | ✅         |  ✅                   | :py:class:`DriftCorrector`         |
+| 3     | Localizations processing | ❌         |  ✅                   | :py:class:`DriftCorrector`         |
 +-------+--------------------------+------------+-----------------------+------------------------------------+
-| 4     | Tracker                  | ❌         |  ❌                   | :py:class:`TrackpyTracker`         |
+| 4     | Tracker                  | ✅         |  ❌                   | :py:class:`TrackpyTracker`         |
 +-------+--------------------------+------------+-----------------------+------------------------------------+
 
 In the table, "Mandatory" means that a pipeline must have one such step. On the contrary, non-mandatory steps can be omitted. 
@@ -131,18 +131,18 @@ The YAML file for the ``tp2`` pipeline is
 Tune your pipeline with the Napari viewer
 -----------------------------------------
 
-If you would like to adjust your pipeline's parameters on one of your movies, you can use the ``open_in_napari()`` function. 
+If you would like to adjust your pipeline's parameters on one of your movies, you can use the :py:func:`TifPipelineWidget.view_pipeline` function. 
 This will open a Napari viewer allowing you to see the effect of each step's parameters on the processing of your movie.
 When you're satisfied, save the pipeline to a file by clicking the "Export pipeline" button ! 
-You'll then be able to load it in a script or notebook using ``from_yaml()``.
+You'll then be able to load it in a script or notebook using :py:func:`TifPipeline.from_yaml`.
 
 .. code-block:: python3
 
-    tp.open_in_napari(tif_file="ROI.tif")
+    TifPipelineWidget.view_pipeline(tp,acq=acq)
     # or
-    tp.open_in_napari(acq=acq)
+    TifPipelineWidget.view_pipeline(tif_file="ROI.tif")
 
-.. image:: pipeline_edit.png
+.. image:: images/pipeline_edit.png
 
 .. _own_steps:
 
@@ -153,22 +153,22 @@ Do you want to remove some background fluorescence prior to localizing ?
 To correct the drift or filter out some localizations ? 
 To use the new state-of-the-art localizer instead of the rudimentary one provided by PALM-tools (inspired from ThunderSTORM's one) ?
 
-**Good news** : the ``TifPipeline`` class is actually quite customizable and open to add-ons ! 
+**Good news** : the :py:class:`TifPipeline` class is actually quite customizable and open to add-ons ! 
 If you want to use your own steps, subclass the corresponding abstract base class : 
-for a localizer, ``Localizer``, for a movie pre-processor, ``MoviePreprocessor``, etc...
+for a localizer, :py:class:`Localizer`, for a movie pre-processor, :py:class:`MoviePreprocessor`, etc...
 
 One method must be overriden in your subclass, whose name depends on the type of step, as summarized below.
 
 +-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
 | Order | Type of step             | Mandatory  | Base class                    | Method to override        | Multiple sub-steps ? | Included                           |
 +=======+==========================+============+===============================+===========================+======================+====================================+
-| 1     | Image processing         | ✅         | :py:class:`MoviePreprocessor` | :py:func:`preprocess`     | ✅                   | :py:class:`WindowPercentileFilter` |
+| 1     | Image processing         | ❌         | :py:class:`MoviePreprocessor` | :py:func:`preprocess`     | ✅                   | :py:class:`WindowPercentileFilter` |
 +-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
-| 2     | Localizer                | ❌         | :py:class:`Localizer`         | :py:func:`localize_slice` | ❌                   | :py:class:`DefaultLocalizer`       |
+| 2     | Localizer                | ✅         | :py:class:`Localizer`         | :py:func:`localize_slice` | ❌                   | :py:class:`DefaultLocalizer`       |
 +-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
-| 3     | Localizations processing | ✅         | :py:class:`LocsProcessor`     | :py:func:`process`        | ✅                   | :py:class:`DriftCorrector`         |
+| 3     | Localizations processing | ❌         | :py:class:`LocsProcessor`     | :py:func:`process`        | ✅                   | :py:class:`DriftCorrector`         |
 +-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
-| 4     | Tracker                  | ❌         | :py:class:`Tracker`           | :py:func:`track`          | ❌                   | :py:class:`TrackpyTracker`         |
+| 4     | Tracker                  | ✅         | :py:class:`Tracker`           | :py:func:`track`          | ❌                   | :py:class:`TrackpyTracker`         |
 +-------+--------------------------+------------+-------------------------------+---------------------------+----------------------+------------------------------------+
 
 .. important::

@@ -1,6 +1,14 @@
 palmari.processing package
 ==========================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   palmari.processing.steps
+
 Submodules
 ----------
 

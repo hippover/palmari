@@ -35,9 +35,20 @@ def get_optimal_shift(pos1, pos2, L, step):
     return best
 
 
-def correct_drift(pos, L=0.2, step_size=0.03, prog_bar_position=None):
+def correct_drift(
+    pos,
+    L=0.2,
+    step_size=0.03,
+    prog_bar_position=None,
+    min_n_locs_per_bin: int = 10000,
+    max_n_bins: int = 20,
+):
     pos["n_detection"] = np.arange(pos.shape[0])
-    bin_size = max(10000, int(pos.shape[0] / 20))
+
+    if "shift_x" not in pos.columns:
+        pos[["shift_x", "shift_y"]] = np.zeros((pos.shape[0], 2))
+
+    bin_size = max(min_n_locs_per_bin, int(pos.shape[0] / max_n_bins))
     bins = np.arange(0, pos.n_detection.max() + 1, bin_size)
     # print("Cut in %d bins" % len(bins))
 
@@ -91,6 +102,7 @@ def correct_drift(pos, L=0.2, step_size=0.03, prog_bar_position=None):
         )
         interp_values = interp(pos.n_detection.values)
         pos[["x", "y"]] -= interp_values
+        pos[["shift_x", "shift_y"]] += interp_values
 
     frames = np.arange(
         start=pos.n_detection.min(), stop=pos.n_detection.max(), step=1000
