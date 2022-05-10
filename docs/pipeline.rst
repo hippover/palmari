@@ -162,7 +162,7 @@ You'll then be able to load it in a script or notebook using :py:func:`TifPipeli
 
 .. code-block:: python3
 
-    TifPipelineWidget.view_pipeline(tp,acq=acq)
+    TifPipelineWidget.view_pipeline(acq=acq)
     # or
     TifPipelineWidget.view_pipeline(tif_file="ROI.tif")
 
