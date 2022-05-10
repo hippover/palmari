@@ -76,13 +76,37 @@ Provided processing steps
 
 PALM-tools comes with a few built-in processing steps, which you can use to compose yout processing pipeline. 
 
-- ``WindowPercentileFilter`` clips pixel values by considering the series of values in a time window and 
+- :py:class:`WindowPercentileFilter` clips pixel values by considering the series of values in a time window and 
   using a given percentile as the minimum, setting all lower values of intensity to this minimal value.
   This is meant to remove background fluorescence. Parameters are :
 
     ``window_size`` : the size of the considered window, in number of frames
 
-    ``percentile`` : the threshold percentage. The higher it is, 
+    ``percentile`` : the threshold percentage.
+
+- :py:class:`DefaultLocalizer` detects localizations using a wavelet filter (see :ref:`ref<>`). 
+  It then performs subpixel localization using radial symmetry, as described in :ref:`ref <https://www.nature.com/articles/nmeth.2071>`.
+  It takes one single parameter :
+
+    ``threshold_factor`` : determines the intensity threshold above which a peak in the signal is considered a localization, compared to the level of the background noise.
+    1 is a reasonnable value, higher means stricter.
+
+- :py:class:`DriftCorrector` corrects drift using time correlation between densities computed on time-wise binned localizations. 
+  Densities are simply estimated using 2D histograms. 
+  One drift vector is estimated per time bin, and the level of drift applied to each point is determined by interpolation.
+  Parameters are :
+
+    ``max_n_bins`` : maximum number of time bins.
+
+    ``min_n_locs_per_bin`` : minimum number of localizations to form a time bin.
+
+- :py:class:`TrackpyTracker` tracks localizations using the Trackpy package. 
+  No missing localization is allowed (trajectories are cut if one point is missing).
+  If there are two candidate localizations inside the search radius, the trajectory is cut as well.
+  It takes one argument :
+
+    ``max_diffusivity`` : estimation of the maximum diffusion coefficient, 
+    which defines the maximum distance between two successive localizations (search radius) : \sqrt{4 D \Delta t}
 
 Configure your pipeline
 ^^^^^^^^^^^^^^^^^^^^^^^
