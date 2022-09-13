@@ -85,6 +85,7 @@ class TifPipeline:
                     instance = instantiate_from_dict(d[key])
                 except Exception as e:
                     logging.debug(e)
+                    raise
             if instance is None:
                 instance = default_class()
             return instance

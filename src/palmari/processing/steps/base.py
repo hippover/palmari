@@ -148,7 +148,7 @@ class Localizer(ProcessingStep):
         # Performs checks on the returned pd.DataFrame
         locs["frame"] += frame_start
         for c, v in self.cols_dtype.items():
-            assert c in locs.columns
+            assert c in locs.columns, "%s not in columns" % c
         for c in self.cols_dtype:
             if c in locs.columns:
                 locs[c] = locs[c].astype(self.cols_dtype[c])
