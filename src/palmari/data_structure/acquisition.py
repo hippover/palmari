@@ -85,11 +85,24 @@ class Acquisition:
     def ID(self) -> str:
         return self.get_property("ID")
 
+    def _clean_locs_table(self, df: pd.DataFrame) -> pd.DataFrame:
+        for c in ["frame", "x", "y", "t"]:
+            assert c in df.columns, "%s not in columns" % c
+        all_cols = list(df.columns)
+        for c in all_cols:
+            if "Unnamed" in c:
+                del df[c]
+        assert (
+            df.shape[0] == df.index.nunique()
+        ), "There are duplicate indices in the locs table"
+        return df
+
     @property
     def locs(self) -> pd.DataFrame:
         if not hasattr(self, "_locs"):
             try:
-                self._locs = pd.read_csv(self.locs_path, index_col=0)
+                df = pd.read_csv(self.locs_path)
+                self._locs = self._clean_locs_table(df)
             except FileNotFoundError:
                 print(
                     "This acquisition wasn't localized. Or perhaps with another Pipeline ?"
@@ -99,6 +112,7 @@ class Acquisition:
 
     @locs.setter
     def locs(self, value):
+        value = self._clean_locs_table(value)
         value.to_csv(self.locs_path)
         self._locs = value
 
@@ -111,17 +125,17 @@ class Acquisition:
     @property
     def raw_locs(self) -> pd.DataFrame:
         if not hasattr(self, "_raw_locs"):
-            loaded = False
             raw_locs_path = self.raw_locs_path
             if os.path.exists(raw_locs_path):
-                self._raw_locs = pd.read_csv(raw_locs_path)
-                loaded = True
-            if not loaded:
+                df = pd.read_csv(raw_locs_path)
+                self._raw_locs = self._clean_locs_table(df)
+            else:
                 self.localize()
         return self._raw_locs
 
     @raw_locs.setter
     def raw_locs(self, value):
+        value = self._clean_locs_table(value)
         value.to_csv(self.raw_locs_path)
         self._raw_locs = value
 
