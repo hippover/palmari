@@ -141,6 +141,7 @@ class Localizer(ProcessingStep):
             # warnings.simplefilter("ignore", category="RuntimeWarning")
             loc_results = loc_results_delayed.compute()
         loc_results.set_index(np.arange(loc_results.shape[0]), inplace=True)
+        loc_results["detection_index"] = np.arange(loc_results.shape[0])
         return loc_results
 
     def localize(self, img: np.array, frame_start: int = 0) -> pd.DataFrame:
