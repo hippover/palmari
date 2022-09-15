@@ -113,7 +113,9 @@ class Acquisition:
     @locs.setter
     def locs(self, value):
         if self._raw_locs:
-            assert self._raw_locs.shape[0] == value.shape[0], "Locs and raw_locs must have the same shape"
+            assert (
+                self._raw_locs.shape[0] == value.shape[0]
+            ), "Locs and raw_locs must have the same shape"
         value = self._clean_locs_table(value)
         value.to_csv(self.locs_path)
         self._locs = value
