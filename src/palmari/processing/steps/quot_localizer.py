@@ -5,6 +5,9 @@ import numpy as np
 from typing import Dict
 
 
+class MTTLogLocalizer(MTTLocalizer):
+    
+
 class MTTLocalizer(Localizer):
 
     cols_dtype = {
