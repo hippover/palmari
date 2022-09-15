@@ -1,16 +1,10 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractproperty
 import logging
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import Dict, List, Union
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import dask.array as da
-import dask.dataframe as dd
-from dask import delayed
-from dask.diagnostics import ProgressBar
 import yaml
 
 from ..data_structure.acquisition import Acquisition
@@ -23,12 +17,14 @@ class TifPipeline:
         self,
         name: str,
         movie_preprocessors: List[MoviePreProcessor],
+        detector: Detector,
         localizer: Localizer,
         loc_processors: List[LocProcessor],
         tracker: Tracker,
     ):
         self.name = name
         self.movie_preprocessors = movie_preprocessors
+        self.detector = detector
         self.localizer = localizer
         self.loc_processors = loc_processors
         self.tracker = tracker

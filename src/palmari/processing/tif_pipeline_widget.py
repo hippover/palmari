@@ -34,6 +34,7 @@ class handled_types(enum.Enum):
     image = "Image"
     points = "Points"
     tracks = "Tracks"
+    detections = "Detections"
 
 
 class ProcessingStepWidget(Container):
@@ -452,6 +453,11 @@ class TifPipelineWidget(QWidget):
                 input_data = self._layers[input_layer_idx].result
             elif input_type == handled_types.tracks:
                 input_data = self._layers[input_layer_idx].result
+            elif input_type == handled_types.detections:
+                input_data = (
+                    self._layers[input_layer_idx - 1].data,
+                    self._current_detections,
+                )
             return step.process(input_data)
 
         step_run_btn.clicked.connect(run_step)
@@ -499,17 +505,18 @@ class TifPipelineWidget(QWidget):
             new_layer = self.viewer.add_points(
                 points[["frame", "x", "y"]].values,
                 properties=points[
-                    ["ratio", "frame", "total_intensity"]
+                    [
+                        c
+                        for c in points.columns
+                        if (c not in ["x", "y"])
+                        and (points[c].dtype.kind in "uifb")
+                    ]
                 ].to_dict(),
                 symbol="x",
                 size=0.25,
                 edge_width=0.1,
                 face_color="transparent",
-                edge_color="ratio",
-                edge_contrast_limits=(
-                    points.ratio.min(),
-                    4 * points.ratio.min(),
-                ),
+                edge_color="frame",
                 edge_colormap="rainbow",
                 blending="translucent_no_depth",
                 name="%s : %s" % (self._layers[0].name, step_name),

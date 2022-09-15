@@ -40,7 +40,7 @@ class TrackpyTracker(Tracker):
         "max_diffusivity": {
             "step": 1.0,
             "tooltip": "Assumed maximum diffusivity (in microns per square second).\nThis is used in conjunction with the Time delta to set the maximal distance between consecutive localizations",
-            "label": "D_max (um/s^2)",
+            "label": "D_max (um^2/s)",
             "min": 0.0,
         },
     }
