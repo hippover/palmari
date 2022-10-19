@@ -12,6 +12,14 @@ Subpackages
 Submodules
 ----------
 
+palmari.processing.edit\_pipeline\_window module
+------------------------------------------------
+
+.. automodule:: palmari.processing.edit_pipeline_window
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 palmari.processing.tif\_pipeline module
 ---------------------------------------
 

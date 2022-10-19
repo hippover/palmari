@@ -16,9 +16,19 @@ from .acquisition import Acquisition
 
 
 class Experiment:
-    def __init__(self, data_folder: str, export_folder: str):
+    def __init__(
+        self,
+        data_folder: str,
+        export_folder: str,
+        DT: float = None,
+        pixel_size: float = None,
+        file_pattern: str = None,
+    ):
         self.data_folder = data_folder
         self.export_folder = export_folder
+        self.DT = DT
+        self.pixel_size = pixel_size
+        self.file_pattern = file_pattern
         self.check_export_folder_and_load_info()
         self.index_path = os.path.join(self.export_folder, "index.csv")
         self.look_for_updates()
@@ -93,40 +103,56 @@ class Experiment:
 
         if not os.path.exists(json_path):
             logging.info("JSON does not exist, create %s" % json_path)
-            pixel_size = 0.097
-            try:
-                pixel_size = float(
-                    input("Pixel size, in microns (default is 0.097) : ")
-                )
-            except BaseException as e:
-                print(e)
-                print(
-                    "Incorrect value, keeping default : %.2f um" % pixel_size
-                )
-
-            DT = 0.03
-            try:
-                DT = float(
-                    input(
-                        "Time interval between successive frames, in seconds (default is 0.03) : "
+            # Quite some redundancies here...
+            pixel_size = self.pixel_size
+            if pixel_size is None:
+                pixel_size = 0.097
+                try:
+                    pixel_size = float(
+                        input("Pixel size, in microns (default is 0.097) : ")
                     )
-                )
-            except BaseException as e:
-                print(e)
-                print("Incorrect value, keeping default : %.2f s" % DT)
+                except BaseException as e:
+                    print(e)
+                    print(
+                        "Incorrect value, keeping default : %.2f um"
+                        % pixel_size
+                    )
+                self.pixel_size = pixel_size
 
-            file_pattern = "*.tif"
-            try:
-                file_pattern = str(input("File pattern (default is *.tif) : "))
-            except BaseException as e:
-                print(e)
-                print("Incorrect value, keeping default : %.2f s" % DT)
+            DT = self.DT
+            if DT is None:
+                DT = 0.03
+                try:
+                    DT = float(
+                        input(
+                            "Time interval between successive frames, in seconds (default is 0.03) : "
+                        )
+                    )
+                except BaseException as e:
+                    print(e)
+                    print("Incorrect value, keeping default : %.2f s" % DT)
+                self.DT = DT
+
+            file_pattern = self.file_pattern
+            if file_pattern is None:
+                file_pattern = ".tif"
+                try:
+                    input_file_pattern = str(
+                        input('File pattern (default is ".tif") : ')
+                    )
+                    if len(input_file_pattern) > 0:
+                        file_pattern = input_file_pattern
+
+                except BaseException as e:
+                    print(e)
+                    print("Incorrect value, keeping default : %.2f s" % DT)
+                self.file_pattern = file_pattern
 
             exp_info = {
                 "data_path": self.data_folder,
-                "pixel_size": pixel_size,
-                "file_pattern": file_pattern,
-                "DT": DT,
+                "pixel_size": self.pixel_size,
+                "file_pattern": self.file_pattern,
+                "DT": self.DT,
             }
             json.dump(
                 exp_info,
@@ -265,10 +291,10 @@ class Experiment:
 
     def scan_folder(self) -> list:
         os.chdir(self.data_folder)
-        roi_files = glob("**/%s" % self.file_pattern, recursive=True)
+        roi_files = glob("**/*%s" % self.file_pattern, recursive=True)
         roi_files = [
-            f for f in roi_files if os.path.getsize(f) > 1e7
-        ]  # Don't consider files of less than 10Mb
+            f for f in roi_files if os.path.getsize(f) > 1e6
+        ]  # Don't consider files of less than 1Mb
         # TODO: improve filtering here
         return roi_files
 

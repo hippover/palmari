@@ -1,7 +1,7 @@
 from .base import *
 
 
-class TrackpyTracker(Tracker):
+class ConservativeTracker(Tracker):
     def __init__(self, max_diffusivity: float = 5.0):
         # Attributes will automatically be detected as parameters of the step and stored/loaded.
         # Parameters must have default values
@@ -40,7 +40,7 @@ class TrackpyTracker(Tracker):
         "max_diffusivity": {
             "step": 1.0,
             "tooltip": "Assumed maximum diffusivity (in microns per square second).\nThis is used in conjunction with the Time delta to set the maximal distance between consecutive localizations",
-            "label": "D_max (um/s^2)",
+            "label": "D_max (um^2/s)",
             "min": 0.0,
         },
     }

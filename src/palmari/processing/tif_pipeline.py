@@ -1,16 +1,10 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod, abstractproperty
 import logging
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import Dict, List, Type, Union
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import dask.array as da
-import dask.dataframe as dd
-from dask import delayed
-from dask.diagnostics import ProgressBar
 import yaml
 
 from ..data_structure.acquisition import Acquisition
@@ -23,12 +17,14 @@ class TifPipeline:
         self,
         name: str,
         movie_preprocessors: List[MoviePreProcessor],
-        localizer: Localizer,
+        detector: Detector,
+        localizer: SubpixelLocalizer,
         loc_processors: List[LocProcessor],
         tracker: Tracker,
     ):
         self.name = name
         self.movie_preprocessors = movie_preprocessors
+        self.detector = detector
         self.localizer = localizer
         self.loc_processors = loc_processors
         self.tracker = tracker
@@ -85,6 +81,7 @@ class TifPipeline:
                     instance = instantiate_from_dict(d[key])
                 except Exception as e:
                     logging.debug(e)
+                    raise
             if instance is None:
                 instance = default_class()
             return instance
@@ -107,12 +104,14 @@ class TifPipeline:
         movie_preprocessors = load_list_from_dict(
             p, "movie_preprocessors", MoviePreProcessor
         )
-        localizer = load_from_dict(p, "localizer", DefaultLocalizer)
+        detector = load_from_dict(p, "detector", BaseDetector)
+        localizer = load_from_dict(p, "localizer", MaxLikelihoodLocalizer)
         loc_processors = load_list_from_dict(p, "loc_processors", LocProcessor)
-        tracker = load_from_dict(p, "tracker", TrackpyTracker)
+        tracker = load_from_dict(p, "tracker", ConservativeTracker)
         return cls(
             name=name,
             movie_preprocessors=movie_preprocessors,
+            detector=detector,
             localizer=localizer,
             loc_processors=loc_processors,
             tracker=tracker,
@@ -130,6 +129,37 @@ class TifPipeline:
     def default_with_name(cls, name: str):
         return cls.from_dict({"name": name})
 
+    @property
+    def available_steps(self):
+        if not hasattr(self, "_available_steps"):
+            all_globals = globals().items()
+            base_classes = {
+                "movie_preprocessors": MoviePreProcessor,
+                "detector": Detector,
+                "localizer": SubpixelLocalizer,
+                "loc_processors": LocProcessor,
+                "tracker": Tracker,
+            }
+            self._available_steps = {}
+            for step_type in base_classes:
+                self._available_steps[step_type] = []
+
+            for name, obj in all_globals:
+                try:
+                    for step_type, base_class in base_classes.items():
+                        if (
+                            issubclass(obj, base_class)
+                            and obj is not base_class
+                        ):
+                            self._available_steps[step_type].append(
+                                (name, obj)
+                            )
+                            break
+                except TypeError as e:
+                    pass
+
+        return self._available_steps
+
     def to_yaml(self, fileName):
         tp_params = self.to_dict()
         yaml.dump(tp_params, open(fileName, "w"))
@@ -138,6 +168,7 @@ class TifPipeline:
     def to_dict(self) -> dict:
         res = {
             "name": self.name,
+            "detector": self.detector.to_dict(),
             "localizer": self.localizer.to_dict(),
             "tracker": self.tracker.to_dict(),
         }
@@ -149,6 +180,62 @@ class TifPipeline:
             res["loc_processors"] = [p.to_dict() for p in self.loc_processors]
         return res
 
+    def contains_class(self, step):
+        return self.index_of(step) is not None
+
+    def step_type_of(self, step):
+        d = self.available_steps
+        for step_type, steps in d.items():
+            for step_tuple in steps:
+                if step_tuple[0] == step:
+                    return step_type
+        return None
+
+    def step_class_of(self, step):
+        d = self.available_steps
+        for step_type, steps in d.items():
+            for step_tuple in steps:
+                if step_tuple[0] == step:
+                    return step_tuple[1]
+        return None
+
+    def index_of(self, step):
+        d = self.to_dict()
+        for step_type, steps in d.items():
+            if step_type == "name":
+                continue
+            if isinstance(steps, list):
+                # Si possible d'avoir plusieurs items, on trouve le rang
+                for step_dict in steps:
+                    for i, option in enumerate(step_dict):
+                        if step == option:
+                            return step_type
+            else:
+                assert isinstance(steps, dict), steps
+                # Sinon, on renvoie zéro parce qu'il n'y a forcément qu'un step
+                if step in steps:
+                    return 0
+        return None
+
+    def can_be_removed(self, step):
+        return self.contains_class(step) and (
+            self.step_type_of(step)
+            in ["movie_preprocessors", "loc_processors"]
+        )
+
+    def is_mandatory(self, step):
+        return self.step_type_of(step) not in [
+            "movie_preprocessors",
+            "loc_processors",
+        ]
+
+    def has_alternatives_to(self, step):
+        step_type = self.step_type_of(step)
+        if step_type is None:
+            return False
+        else:
+            return len(self.available_steps[step_type]) > 1
+
     def __str__(self):
         desc = "TIF Processing pipeline\n"
         desc += "-----------------------\n"
@@ -159,6 +246,9 @@ class TifPipeline:
                 len(self.movie_preprocessors),
                 step,
             )
+        desc += "-----------------------\n"
+        desc += "Detector :\n"
+        desc += "\t %s\n" % self.detector
         desc += "-----------------------\n"
         desc += "Localizer :\n"
         desc += "\t %s\n" % self.localizer
@@ -183,18 +273,24 @@ class TifPipeline:
     def movie_localization(
         self, mov: da.Array, DT: float, pixel_size: float
     ) -> pd.DataFrame:
-        locs = self.localizer.movie_localization(mov)
+        detections = self.detector.movie_detection(mov)
+        locs = self.localizer.movie_localization(mov, detections)
         locs[["x", "y"]] *= pixel_size
         locs["t"] = locs["frame"] * DT
         return locs
 
-    def loc_processing(self, locs: pd.DataFrame) -> pd.DataFrame:
+    def loc_processing(
+        self,
+        mov: da.Array,  # Movie
+        locs: pd.DataFrame,  # Previous localizations, with x and y in micrometers
+        pixel_size: float = 1.0,  # Pixel size in micrometers
+    ) -> pd.DataFrame:
         for i, locproc in enumerate(self.loc_processors):
             logging.info(
                 "Processing locs, step %d / %d : %s"
                 % (i, len(self.loc_processors), locproc.name)
             )
-            locs = locproc.process(locs)
+            locs = locproc.process(mov, locs, pixel_size=pixel_size)
         return locs
 
     def tracking(self, locs: pd.DataFrame) -> pd.DataFrame:
@@ -212,16 +308,17 @@ class TifPipeline:
             logging.warning(
                 "Can't skip tracking after fresh localization. Overriding to skip_tracking = False"
             )
+        original_mov = acq.image.astype(float)
         if not skip_loc:
-            mov = acq.image.astype(float)
-            mov = self.movie_preprocessing(mov)
+            mov = self.movie_preprocessing(original_mov)
             locs = self.movie_localization(
                 mov, DT=acq.experiment.DT, pixel_size=acq.experiment.pixel_size
             )
             acq.raw_locs = locs.copy()
             self.mark_as_localized(acq)
         if not skip_tracking:
-            locs = self.loc_processing(acq.raw_locs.copy())
+            acq.experiment.pixel_size
+            locs = self.loc_processing(original_mov, acq.raw_locs.copy())
             acq.locs = self.tracking(locs)
             self.mark_as_tracked(acq)
 

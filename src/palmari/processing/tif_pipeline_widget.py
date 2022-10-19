@@ -2,7 +2,9 @@ from __future__ import annotations
 from typing import Any
 import napari
 from napari.layers import Image
+from qtpy import QtCore
 from qtpy.QtWidgets import (
+    QDialog,
     QWidget,
     QLabel,
     QVBoxLayout,
@@ -12,6 +14,7 @@ from qtpy.QtWidgets import (
     QGroupBox,
     QFileDialog,
     QScrollArea,
+    QTabWidget,
 )
 
 from magicgui.widgets import FileEdit
@@ -19,7 +22,13 @@ from functools import partial
 
 
 from napari.qt import thread_worker
-from magicgui.widgets import create_widget, Container, ComboBox, FloatSpinBox
+from magicgui.widgets import (
+    create_widget,
+    Container,
+    ComboBox,
+    FloatSpinBox,
+    FloatSlider,
+)
 import enum
 import dask.array as da
 import dask_image
@@ -28,18 +37,23 @@ import logging
 import os
 from ..data_structure.acquisition import Acquisition
 from .tif_pipeline import TifPipeline, ProcessingStep
+from .edit_pipeline_window import PipelineEditor
 
 
 class handled_types(enum.Enum):
     image = "Image"
     points = "Points"
     tracks = "Tracks"
+    detections = "Detections"
+    image_locs_and_pixel_size = "Image_locs_and_pixel_size"
 
 
 class ProcessingStepWidget(Container):
     def __init__(self, step: ProcessingStep):
         self.widgets_dict = {}
         for param, value in step.__dict__.items():
+            if param[0] == "_":
+                continue
             logging.debug("Adding widget for %s" % param)
             w_type = (
                 step.widget_types[param]
@@ -184,6 +198,20 @@ class TifPipelineWidget(QWidget):
         )
         self.select_file_widget.changed.connect(self.load_pipeline)
         main_layout.addWidget(self.select_file_widget._widget._qwidget)
+
+        editPipelineButton = QPushButton("Edit current pipeline")
+
+        def openEditWindow():
+            editDialog = PipelineEditor(self.tp)
+            if editDialog.exec():
+                new_pipeline_widget = self.get_pipeline_widget()
+                self.layout().replaceWidget(
+                    self.pipeline_widget, new_pipeline_widget
+                )
+                self.pipeline_widget = new_pipeline_widget
+
+        editPipelineButton.clicked.connect(openEditWindow)
+        main_layout.addWidget(editPipelineButton)
         return main_layout
 
     def input_layout(self):
@@ -270,6 +298,7 @@ class TifPipelineWidget(QWidget):
         if preprocessing_widget is not None:
             pipeline_layout.addWidget(preprocessing_widget)
 
+        pipeline_layout.addWidget(self.detection_widget())
         pipeline_layout.addWidget(self.localization_widget())
 
         post_processing_widget = self.locs_processing_widget()
@@ -340,6 +369,21 @@ class TifPipelineWidget(QWidget):
 
         return main_widget
 
+    def detection_widget(self):
+
+        main_widget = QGroupBox(title="Detection : %s" % self.tp.detector.name)
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(
+            self.setup_layout_for_step(
+                self.tp.detector,
+                input_type=handled_types.image,
+                output_type=handled_types.detections,
+                skip_title=True,
+            )
+        )
+        main_widget.setLayout(main_layout)
+        return main_widget
+
     def localization_widget(self):
 
         main_widget = QGroupBox(
@@ -349,7 +393,7 @@ class TifPipelineWidget(QWidget):
         main_layout.addLayout(
             self.setup_layout_for_step(
                 self.tp.localizer,
-                input_type=handled_types.image,
+                input_type=handled_types.detections,
                 output_type=handled_types.points,
                 skip_title=True,
             )
@@ -367,7 +411,7 @@ class TifPipelineWidget(QWidget):
         for i, step in enumerate(self.tp.loc_processors):
             step_layout = self.setup_layout_for_step(
                 step,
-                input_type=handled_types.points,
+                input_type=handled_types.image_locs_and_pixel_size,
                 output_type=handled_types.points,
             )
             main_layout.addLayout(step_layout)
@@ -417,24 +461,28 @@ class TifPipelineWidget(QWidget):
             logging.debug(
                 "Adding layer %d -> %s" % (input_layer_idx, output_layer_idx)
             )
-
             if step.is_localizer:
-                print("Scaling positions when adding layer")
-                print("Pixel size = %.3f" % self.pixel_size)
                 data["t"] = (
                     data["frame"] - data["frame"].min()
                 ) * self.delta_t
                 data[["x", "y"]] *= self.pixel_size
 
+            if step.is_detector:
+                data[["x", "y"]] = data[["y", "x"]]
+
             self.drop_layers_after(output_layer_idx)
-            self.add_layer_of_type(
-                data=data,
-                data_type=output_type,
-                layer_idx=output_layer_idx,
-                step_name=step.name,
-            )
+            if data.shape[0] > 0:
+                self.add_layer_of_type(
+                    data=data,
+                    data_type=output_type,
+                    layer_idx=output_layer_idx,
+                    step_name=step.name,
+                )
             self.setEnabled(True)
-            self.activate_buttons(last_clicked=btn_index)
+            if data.shape[0] > 0:
+                self.activate_buttons(last_clicked=btn_index)
+            else:
+                self.activate_buttons(last_clicked=btn_index - 1)
             if is_final_step:
                 self.to_export = data
             else:
@@ -447,12 +495,37 @@ class TifPipelineWidget(QWidget):
             assert input_layer_idx in self._layers
             self.setEnabled(False)
             if input_type == handled_types.image:
-                input_data = self._layers[input_layer_idx].data
+                input_data = (self._layers[input_layer_idx].data,)
             elif input_type == handled_types.points:
-                input_data = self._layers[input_layer_idx].result
+                input_data = (self._layers[input_layer_idx].result,)
             elif input_type == handled_types.tracks:
-                input_data = self._layers[input_layer_idx].result
-            return step.process(input_data)
+                input_data = (self._layers[input_layer_idx].result,)
+            elif input_type == handled_types.detections:
+                detections = pd.DataFrame(
+                    data=self._layers[input_layer_idx].data,
+                    columns=["frame", "x", "y"],
+                )
+                detections[["x", "y"]] /= self.pixel_size
+                # On inverse x et y volontairement
+                detections[["y", "x"]] = detections[["x", "y"]].astype(int)
+                input_data = (
+                    self._layers[input_layer_idx - 1].data,
+                    detections,
+                )
+            elif input_type == handled_types.image_locs_and_pixel_size:
+                detections = pd.DataFrame(
+                    data=self._layers[input_layer_idx].data,
+                    columns=["frame", "x", "y"],
+                )
+                detections[["x", "y"]] /= self.pixel_size
+                # On inverse x et y volontairement
+                detections[["y", "x"]] = detections[["x", "y"]].astype(int)
+                input_data = (
+                    self._layers[0].data,
+                    self._layers[input_layer_idx].result,
+                    self.pixel_size,
+                )
+            return step.process(*input_data)
 
         step_run_btn.clicked.connect(run_step)
 
@@ -478,6 +551,12 @@ class TifPipelineWidget(QWidget):
             )
         elif data_type == handled_types.points:
             self.add_points_layer(
+                points=data,
+                layer_idx=layer_idx,
+                step_name=step_name,
+            )
+        elif data_type == handled_types.detections:
+            self.add_points_layer(
                 points=data, layer_idx=layer_idx, step_name=step_name
             )
 
@@ -493,27 +572,34 @@ class TifPipelineWidget(QWidget):
         else:
             self._layers[layer_idx].data = returned_image
 
-    def add_points_layer(self, points, layer_idx: int, step_name: str):
+    def add_points_layer(
+        self,
+        points,
+        layer_idx: int,
+        step_name: str,
+    ):
 
         if layer_idx not in self._layers:
             new_layer = self.viewer.add_points(
                 points[["frame", "x", "y"]].values,
                 properties=points[
-                    ["ratio", "frame", "total_intensity"]
+                    [
+                        c
+                        for c in points.columns
+                        if (c not in ["x", "y"])
+                        and (points[c].dtype.kind in "uifb")
+                    ]
                 ].to_dict(),
-                symbol="x",
+                symbol="disc",
                 size=0.25,
                 edge_width=0.1,
-                face_color="transparent",
-                edge_color="ratio",
-                edge_contrast_limits=(
-                    points.ratio.min(),
-                    4 * points.ratio.min(),
-                ),
+                face_color="transparent" if (points.shape[0] > 0) else None,
+                edge_color="frame" if (points.shape[0] > 0) else None,
                 edge_colormap="rainbow",
                 blending="translucent_no_depth",
                 name="%s : %s" % (self._layers[0].name, step_name),
             )
+            new_layer.editable = False
             self._layers[layer_idx] = new_layer
         else:
             self._layers[layer_idx].data = points
