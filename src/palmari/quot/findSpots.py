@@ -773,6 +773,13 @@ METHODS = {
     "llr_rect": llr_rect,
 }
 
+t_default = {
+    "dog": 200.0,
+    "log": 200.0,
+    "llr": 20.0,
+    "llr_rect": 20.0,
+}
+
 
 def detect(I, method=None, **kwargs):
     """
@@ -801,6 +808,8 @@ def detect(I, method=None, **kwargs):
 
     # Enforce float64, required for some methods
     I = I.astype(np.float64)
+    if "t" in kwargs:
+        kwargs["t"] *= t_default.get(method)
 
     # Run detection
     return method_f(I, **kwargs)

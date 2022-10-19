@@ -4,7 +4,12 @@ contributions:
   commands:
     - id: palmari.make_qwidget
       python_name: palmari._widget:PalmariWidget
-      title: Open
+      title: Analyze file...
+    - id: palmari.run_pipeline
+      python_name: palmari._runner:PipelineRunner
+      title: Run pipeline on folder...
   widgets:
     - command: palmari.make_qwidget
-      display_name: PALMari
+      display_name: Run PALMari on file...
+    - command: palmari.run_pipeline
+      display_name: Run PALMari on folder...

@@ -1,7 +1,7 @@
 from .base import *
 
 
-class TrackpyTracker(Tracker):
+class ConservativeTracker(Tracker):
     def __init__(self, max_diffusivity: float = 5.0):
         # Attributes will automatically be detected as parameters of the step and stored/loaded.
         # Parameters must have default values

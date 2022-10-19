@@ -5,10 +5,11 @@ from typing import Dict
 import logging
 
 
-class MTTDiffusionTracker(Tracker):
+class DiffusionTracker(Tracker):
     def __init__(
         self,
         max_diffusivity: float = 5.0,
+        max_blinks: int = 0,
         # For the diffusion weight matrix
         d_bound_naive: float = 0.1,  # naive estimate of diffusion
         init_cost: float = 50.0,  # Cost of starting a new trajectory when reconnections are available in the search radius
@@ -20,6 +21,7 @@ class MTTDiffusionTracker(Tracker):
         self.y_diff = y_diff
         self.init_cost = init_cost
         self.d_bound_naive = d_bound_naive
+        self.max_blinks = max_blinks
 
     def track(self, locs: pd.DataFrame):
         # This is where the actual tracking happen.
@@ -35,7 +37,7 @@ class MTTDiffusionTracker(Tracker):
             search_radius=max_radius,
             pixel_size_um=1.0,
             frame_interval=delta_t,
-            max_blinks=0,
+            max_blinks=self.max_blinks,
             y_diff=self.y_diff,
             d_bound_naive=self.d_bound_naive,
             init_cost=self.init_cost,
@@ -45,11 +47,12 @@ class MTTDiffusionTracker(Tracker):
     @property
     def name(self):
         # This is for printing
-        return "MTT Diffusion tracker"
+        return "Diffusion tracker"
 
     # The following dicts are used when setting the parameters through a graphic interface, using open_in_napari()
     widget_types = {
         "max_diffusivity": "FloatSpinBox",
+        "max_blinks": "SpinBox",
         "d_bound_naive": "FloatSpinBox",
         "init_cost": "FloatSpinBox",
         "y_diff": "FloatSlider",
@@ -61,6 +64,13 @@ class MTTDiffusionTracker(Tracker):
             "tooltip": "Assumed maximum diffusivity (in microns per square second).\nThis is used in conjunction with the Time delta to set the maximal distance between consecutive localizations",
             "label": "D_max (um^2/s)",
             "min": 0.0,
+        },
+        "max_blinks": {
+            "step": 1,
+            "tooltip": "Maximum number of tolerated blinks (i.e. number of frames during which a particle can 'disappear').",
+            "label": "Max blinks",
+            "min": 0,
+            "max": 2,
         },
         "y_diff": {
             "step": 0.01,
@@ -84,10 +94,11 @@ class MTTDiffusionTracker(Tracker):
     }
 
 
-class MTTEuclideanTracker(Tracker):
+class EuclideanTracker(Tracker):
     def __init__(
         self,
         max_diffusivity: float = 5.0,
+        max_blinks: int = 0,
         scale: float = 1.0,  # scaling factor between distances and weights
         init_cost: float = 50.0,  # Cost of starting a new trajectory when reconnections are available in the search radius
     ):
@@ -95,6 +106,7 @@ class MTTEuclideanTracker(Tracker):
         # Parameters must have default values
         self.max_diffusivity = max_diffusivity
         self.init_cost = init_cost
+        self.max_blinks = max_blinks
         self.scale = scale
 
     def track(self, locs: pd.DataFrame):
@@ -111,7 +123,7 @@ class MTTEuclideanTracker(Tracker):
             search_radius=max_radius,
             pixel_size_um=1.0,
             frame_interval=delta_t,
-            max_blinks=0,
+            max_blinks=self.max_blinks,
             scale=self.scale,
             init_cost=self.init_cost,
         )["trajectory"]
@@ -120,13 +132,14 @@ class MTTEuclideanTracker(Tracker):
     @property
     def name(self):
         # This is for printing
-        return "MTT Euclidean tracker"
+        return "Euclidean tracker"
 
     # The following dicts are used when setting the parameters through a graphic interface, using open_in_napari()
     widget_types = {
         "max_diffusivity": "FloatSpinBox",
         "scale": "FloatSpinBox",
         "init_cost": "FloatSpinBox",
+        "max_blinks": "SpinBox",
     }
     # For details about widget types, see https://napari.org/magicgui/
     widget_options = {
@@ -147,5 +160,12 @@ class MTTEuclideanTracker(Tracker):
             "label": "Initialization cost",
             "min": 1,
             "tooltip": "Cost of initializing a new trajectory when a reconnection is available in the search radius",
+        },
+        "max_blinks": {
+            "step": 1,
+            "tooltip": "Maximum number of tolerated blinks (i.e. number of frames during which a particle can 'disappear').",
+            "label": "Max blinks",
+            "min": 0,
+            "max": 2,
         },
     }

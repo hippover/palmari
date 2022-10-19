@@ -12,18 +12,26 @@ palmari.processing.steps.base module
    :undoc-members:
    :show-inheritance:
 
-palmari.processing.steps.default\_localizer module
---------------------------------------------------
-
-.. automodule:: palmari.processing.steps.default_localizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 palmari.processing.steps.drift\_corrector module
 ------------------------------------------------
 
 .. automodule:: palmari.processing.steps.drift_corrector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+palmari.processing.steps.quot\_localizer module
+-----------------------------------------------
+
+.. automodule:: palmari.processing.steps.quot_localizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+palmari.processing.steps.quot\_tracker module
+---------------------------------------------
+
+.. automodule:: palmari.processing.steps.quot_tracker
    :members:
    :undoc-members:
    :show-inheritance:

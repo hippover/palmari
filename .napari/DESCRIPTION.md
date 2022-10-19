@@ -76,17 +76,15 @@ over in `setup.cfg`. However, if your plugin has any more complex dependencies, 
 requires any additional preparation before (or after) installation, you should add 
 this information here.
 
-## Getting Help
-
-This section should point users to your preferred support tools, whether this be raising
-an issue on GitHub, asking a question on image.sc, or using some other method of contact.
-If you distinguish between usage support and bug/feature support, you should state that
-here.
-
 ## How to Cite
 
 Many plugins may be used in the course of published (or publishable) research, as well as
 during conference talks and other public facing events. If you'd like to be cited in
 a particular format, or have a DOI you'd like used, you should provide that information here. -->
 
-The developer has not yet provided a napari-hub specific description.
+Process your SPT-PALM recordings with PALMari's all-inclusive pipeline: spot detection, sub-pixel localization, tracking & more.
+Start quickly with default parameters or customize your pipeline, and run it on entire folder of microscope recordings.
+
+## Getting Help
+
+Email Hippolyte Verdier : hverdier@pasteur.fr

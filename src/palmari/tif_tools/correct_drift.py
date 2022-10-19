@@ -5,6 +5,7 @@ from tqdm import tqdm
 import pandas as pd
 from dask import delayed
 import dask.array as da
+from skimage.registration import phase_cross_correlation
 
 
 def get_optimal_shift(pos1, pos2, L, step):
@@ -16,7 +17,14 @@ def get_optimal_shift(pos1, pos2, L, step):
     hist1, _, _ = np.histogram2d(
         pos1[:, 0], pos1[:, 1], bins=(bins_x, bins_y), normed=True
     )
+    hist2, _, _ = np.histogram2d(
+        pos2[:, 0], pos2[:, 1], bins=(bins_x, bins_y), normed=True
+    )
 
+    # subpixel precision
+    shift, error, diffphase = phase_cross_correlation(hist1, hist2)
+    return shift * step
+    """
     best_correlation = 0.0
 
     best = np.zeros(2)
@@ -32,7 +40,9 @@ def get_optimal_shift(pos1, pos2, L, step):
             if correlation > best_correlation:
                 best_correlation = correlation
                 best = np.array([dx, dy])
+    
     return best
+    """
 
 
 def correct_drift(
