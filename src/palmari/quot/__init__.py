@@ -2,6 +2,10 @@
 """
 __init__.py
 
+ALL THE CODE IN THIS FOLDER WAS COPIED/ADAPTED FROM 
+https://github.com/alecheckert/quot
+Which is under MIT LICENSE
+
 """
 # Enforce PySide2 backend to pyqtgraph
 # import PySide2
