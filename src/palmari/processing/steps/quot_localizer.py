@@ -13,15 +13,12 @@ detection_methods_dict = {
 
 class BaseDetector(Detector):
     def __init__(
-        self,
-        k: float = 1.5,
-        w: int = 21,
-        t: float = 1.0,
+        self, k: float = 1.5, w: int = 21, t: float = 1.0, method: str = "llr"
     ):
         self.k = k
         self.w = w
         self.t = t
-        self.method = "llr"
+        self.method = method
 
     def detect_frame(self, img: np.array) -> pd.DataFrame:
         return detect(img, t=self.t, k=self.k, method=self.method, w=self.w)

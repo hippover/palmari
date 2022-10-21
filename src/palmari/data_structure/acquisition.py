@@ -112,7 +112,7 @@ class Acquisition:
 
     @locs.setter
     def locs(self, value):
-        if self._raw_locs:
+        if hasattr(self, "_raw_locs"):
             assert (
                 self._raw_locs.shape[0] == value.shape[0]
             ), "Locs and raw_locs must have the same shape"

@@ -266,6 +266,7 @@ class PipelineRunner(QWidget):
                 )
             else:
                 self.run_button.setText("Process (?) files !")
+
         self.run_button.setEnabled(
             (self.tp is not None)
             and (self.export_folder is not None)

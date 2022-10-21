@@ -1,46 +1,19 @@
 from __future__ import annotations
-from typing import Any
-import napari
-from napari.layers import Image
 from qtpy.QtWidgets import (
     QDialog,
-    QWidget,
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
-    QListView,
-    QScrollArea,
-    QAbstractItemView,
     QStyle,
     QTreeWidget,
     QTreeWidgetItem,
 )
-from qtpy.QtGui import QIcon, QStandardItemModel, QStandardItem
 from qtpy import QtCore
 
-from magicgui.widgets import FileEdit, LineEdit
-from functools import partial
+from magicgui.widgets import LineEdit
 
-
-from napari.qt import thread_worker
-from magicgui.widgets import (
-    create_widget,
-    Container,
-    ComboBox,
-    FloatSpinBox,
-    FloatSlider,
-)
-import enum
-import dask.array as da
-import dask_image
-import pandas as pd
-import logging
-import os
-from PyQt5.QtCore import pyqtSignal
-
-from ..data_structure.acquisition import Acquisition
-from .tif_pipeline import TifPipeline, ProcessingStep
+from .tif_pipeline import TifPipeline
 
 
 class PipelineEditor(QDialog):
