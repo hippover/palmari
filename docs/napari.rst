@@ -2,22 +2,69 @@
 Napari plugin
 =============
 
-Once installed, access Napari via 
+Processing a single experiment
+------------------------------
 
-One-off processing
-------------------
+To process an microscope recording using Palmari, open Napari and click on ``Pulgins > palmari > Run PALMari on file...``.
+The Napari panel appears (by default, on the right of your screen).
 
-Palmari is a Napari plugin. 
-By default, it loads a standard pipeline, allowing to run the steps one by one, in order to see their effect and tweak their parameters.
-You can thus use it to localize and track a single image, as it allows you to export the obtained localizations.
+Do not forget, in the "Input" section, to enter the pixel size and exposition time of the recording !
 
-.. figure:: images/napari_plugin.png
+.. figure:: images/napari_plugin_2.png
 
-    Process your PALM movies with the default pipeline, or load your own !
+    Palmari panel, with default pipeline.
+
+A standard pipeline (i.e. succession of processing steps) is loaded, with the following steps:
+
+- detection
+
+- sub-pixel localization
+
+- tracking
+
+You can change the parameters of these steps and run them successively.
+
+After processing, you can export the obtained localizations and tracks by clicking on the "save locs and tracks" button !
+
+.. figure:: images/napari_plugin_3.png
+
+    Look at the intermediate steps using Napari's grid view.
+
+Customizing the pipeline
+------------------------
+
+Do you want to add a drift correction step, or to use a different tracking algorithm ? 
+Click on "Edit current pipeline" at the top of the panel, to change the steps.
+See :ref:`here <tif_pipeline>` for more information about the available processing steps.
+
+.. figure:: images/napari_edit_pipeline.png
+
+    The pipeline edition window.
 
 Export and load pipelines
 -------------------------
 
-When parameters are well set, you can export the pipeline so as to use it later to analyse other images (for instance, using :py:func:`TifPipeline.from_yaml`).
+You're satisfied with your pipeline and want to save it for later ? Export it by clicking on the "Save pipeline" button. 
+It will create a ``.yaml`` file at a location of your choice. 
+To load en existing pipeline, click on the "Load pipeline / select file" button at the top of the Palmari panel.
 
-If you've defined your :py:class:`TifPipeline` in a Python script or notebook, you can visualize its effect on an image using :py:func:`TifPipeline.open_in_napari`.
+Process Batches of experiments
+------------------------------
+
+If you have a series of experiments to process, click on ``Plugins > palmari > run palmari on folder...``
+
+A panel opens on the right. First, select the desired pipeline's ``.yaml`` file. 
+Then, choose the location of your experiments and the folder where to export them.
+
+Click on "Process files" and you're all set ! The progress bar will keep you informed of the processing, which might last for several hours, depending on the size of your files.
+
+.. figure:: images/napari_process_folder.png
+
+    Process all ``.tif`` in a folder, directly from Napari.
+
+Loading pipelines with Python
+-----------------------------
+
+You can also load pipelines programatically using Palmari's Python interface, with :py:func:`TifPipeline.from_yaml`.
+
+Conversely, if you've defined your :py:class:`TifPipeline` in a Python script or notebook, you can visualize its effect on an image using :py:func:`TifPipeline.open_in_napari()`.
