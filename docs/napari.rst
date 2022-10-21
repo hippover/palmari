@@ -2,10 +2,12 @@
 Napari plugin
 =============
 
+Once installed, access Napari via 
+
 One-off processing
 ------------------
 
-Palmari also comes under the form of a Napari plugin. 
+Palmari is a Napari plugin. 
 By default, it loads a standard pipeline, allowing to run the steps one by one, in order to see their effect and tweak their parameters.
 You can thus use it to localize and track a single image, as it allows you to export the obtained localizations.
 

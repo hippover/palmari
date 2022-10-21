@@ -14,8 +14,7 @@ from scipy.spatial import distance_matrix
 
 # Hungarian algorithm
 from munkres import Munkres
-
-hungarian_solver = Munkres()
+from scipy.optimize import linear_sum_assignment
 
 # Custom utilities
 from .helper import connected_components
@@ -29,6 +28,16 @@ from .trajUtils import filter_on_spots_per_frame
 ##################################
 ## LOW-LEVEL TRACKING UTILITIES ##
 ##################################
+
+
+class ScipyMunkres:
+    def compute(self, W):
+        rows, cols = linear_sum_assignment(W)
+        return [(i, j) for i, j in zip(rows, cols)]
+
+
+# hungarian_solver = Munkres()
+hungarian_solver = ScipyMunkres()
 
 
 def is_duplicates(trajs):
@@ -751,6 +760,8 @@ def track(
 
     # Convert locs to ndarray for speed
     cols = ["loc_idx", "frame", "y", "x", "I0"]
+    if "I0" not in locs.columns:
+        locs["I0"] = 1.0
     L = np.asarray(locs[cols])
 
     # Maximum tolerated traj-loc jump distance (search radius)

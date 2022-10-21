@@ -346,7 +346,10 @@ class TifPipelineWidget(QWidget):
             caption="Save pipeline parameters",
         )
         logging.debug(fileName)
+
         if fileName is not None and len(fileName) > 2:
+            if ".yaml" not in fileName:
+                fileName = "%s.yaml" % fileName
             self.tp.to_yaml(fileName)
 
     def preprocessing_widget(self):
