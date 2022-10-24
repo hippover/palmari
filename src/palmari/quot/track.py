@@ -24,6 +24,7 @@ from copy import copy
 
 # Filter on the number of spots per frame
 from .trajUtils import filter_on_spots_per_frame
+from tqdm import tqdm
 
 ##################################
 ## LOW-LEVEL TRACKING UTILITIES ##
@@ -311,10 +312,11 @@ def diffusion_weight_matrix(
 
         # Log-likelihood of diffusing from last
         # known position to each new position
-        L_diff = np.log(
-            y_diff * (R / local_var2) * np.exp(-R2 / (2 * local_var2))
-            + (1 - y_diff) * (R / max_var2) * np.exp(-R2 / (2 * max_var2))
-        )
+        diff = y_diff * (R / local_var2) * np.exp(-R2 / (2 * local_var2)) + (
+            1 - y_diff
+        ) * (R / max_var2) * np.exp(-R2 / (2 * max_var2))
+        L_diff = np.log(diff)
+        L_diff[diff <= 0] = -np.inf
 
         # Make sure we do NOT reconnect trajectories to localizations
         # outside of their search radii
@@ -794,7 +796,10 @@ def track(
     new = []
     completed = []
 
-    for fi in range(start_frame + 1, stop_frame):
+    for fi in tqdm(
+        range(start_frame + 1, stop_frame),
+        total=stop_frame - (start_frame + 1),
+    ):
 
         # # DEBUG
         # print("FRAME:\t%d" % fi)

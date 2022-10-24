@@ -239,7 +239,7 @@ class TifPipelineWidget(QWidget):
             step=0.005,
         )
 
-        def set_delta_t(x):
+        def set_delta_t(x: float):
             self.delta_t = x
 
         delta_t_widget.changed.connect(set_delta_t)
@@ -251,7 +251,7 @@ class TifPipelineWidget(QWidget):
             step=0.001,
         )
 
-        def set_pixel_size(x):
+        def set_pixel_size(x: float):
             self.pixel_size = x
             self.rescale_image_layers()
 
@@ -505,7 +505,7 @@ class TifPipelineWidget(QWidget):
                 input_data = (self._layers[input_layer_idx].result,)
             elif input_type == handled_types.detections:
                 detections = pd.DataFrame(
-                    data=self._layers[input_layer_idx].data,
+                    data=self._layers[input_layer_idx].data.copy(),
                     columns=["frame", "x", "y"],
                 )
                 detections[["x", "y"]] /= self.pixel_size
@@ -516,13 +516,13 @@ class TifPipelineWidget(QWidget):
                     detections,
                 )
             elif input_type == handled_types.image_locs_and_pixel_size:
-                detections = pd.DataFrame(
-                    data=self._layers[input_layer_idx].data,
-                    columns=["frame", "x", "y"],
-                )
-                detections[["x", "y"]] /= self.pixel_size
+                # detections = pd.DataFrame(
+                #    data=self._layers[input_layer_idx].data.copy(),
+                #    columns=["frame", "x", "y"],
+                # )
+                # detections[["x", "y"]] /= self.pixel_size
                 # On inverse x et y volontairement
-                detections[["y", "x"]] = detections[["x", "y"]].astype(int)
+                # detections[["y", "x"]] = detections[["x", "y"]].astype(int)
                 input_data = (
                     self._layers[0].data,
                     self._layers[input_layer_idx].result,
