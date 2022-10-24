@@ -49,8 +49,9 @@ class ProcessingStep(ABC):
 
         return {self.__class__.__qualname__: params_dict}
 
-    def update_param(self, param, value):
+    def update_param(self, param, *args):
         logging.debug("Updating %s" % param)
+        value = args[0]
         logging.debug("%s -> %s" % (self.__dict__[param], value))
         self.__dict__[param] = value
 
