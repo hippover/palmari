@@ -13,7 +13,7 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QLabel,
 )
-from PyQt5.QtCore import pyqtSignal
+from qtpy.QtCore import pyqtSignal
 from magicgui.widgets import FileEdit, FloatSpinBox, LineEdit, ProgressBar
 from threading import Thread
 

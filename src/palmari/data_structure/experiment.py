@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from typing import List
 import numpy as np
 from typing import TYPE_CHECKING
+from dask_image.imread import imread
 
 from .acquisition import Acquisition
 
@@ -295,7 +296,8 @@ class Experiment:
         roi_files = [
             f for f in roi_files if os.path.getsize(f) > 1e6
         ]  # Don't consider files of less than 1Mb
-        # TODO: improve filtering here
+        roi_files = [f for f in roi_files if imread(f).ndim == 3]
+        roi_files = [f for f in roi_files if min(imread(f).shape) >= 5]
         return roi_files
 
     def look_for_updates(self):
