@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import trackpy as tp
 import logging
-import napari
 from glob import glob
 import dask_image.imread
 import dask.array as da
@@ -470,6 +469,8 @@ class Acquisition:
         short_for_tests: bool = False,
         contrast_limits: tuple = (100, 500),
     ):
+        import napari
+        
         viewer = napari.viewer.Viewer(title=os.path.dirname(self.tif_file))
         viewer.add_image(
             self.image[:1000] if short_for_tests else self.image,
@@ -491,6 +492,7 @@ class Acquisition:
         self, viewer=None, polygon_ID_col: str = None, subsample: int = None
     ):
         if viewer is None:
+            import napari
             viewer = napari.viewer.Viewer()
         locs = self.locs.copy()
         if subsample is not None and subsample < locs.shape[0]:
@@ -541,6 +543,7 @@ class Acquisition:
         self, viewer=None, min_length=1, polygon_ID_col: str = None
     ):
         if viewer is None:
+            import napari
             viewer = napari.viewer.Viewer()
 
         traj_length = self.locs.n.value_counts()
@@ -601,8 +604,9 @@ class Acquisition:
             properties=track_properties,
         )
 
-    def view_polygons(self, viewer: napari.Viewer = None):
+    def view_polygons(self, viewer = None):
         if viewer is None:
+            import napari
             viewer = napari.viewer.Viewer()
         polygons = []
 
