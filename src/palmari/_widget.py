@@ -24,7 +24,7 @@ class PalmariWidget(TifPipelineWidget):
                 },
                 "tracker": {
                     "DiffusionTracker": {
-                        "max_diffusivityxz": 5.0,
+                        "max_diffusivity": 5.0,
                         "y_diff": 0.9,
                         "init_cost": 50.0,
                         "d_bound_naive": 0.1,
