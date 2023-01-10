@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .processing.tif_pipeline_widget import TifPipelineWidget
 from .processing.tif_pipeline import TifPipeline
 from .processing.steps import *
@@ -22,7 +24,7 @@ class PalmariWidget(TifPipelineWidget):
                 },
                 "tracker": {
                     "DiffusionTracker": {
-                        "max_diffusivity": 5.0,
+                        "max_diffusivityxz": 5.0,
                         "y_diff": 0.9,
                         "init_cost": 50.0,
                         "d_bound_naive": 0.1,
