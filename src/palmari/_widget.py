@@ -1,7 +1,10 @@
-from .processing import TifPipelineWidget
-from .processing import TifPipeline
+from .processing.tif_pipeline_widget import TifPipelineWidget
+from .processing.tif_pipeline import TifPipeline
 from .processing.steps import *
-from napari import Viewer
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from napari import Viewer
 
 
 class PalmariWidget(TifPipelineWidget):
