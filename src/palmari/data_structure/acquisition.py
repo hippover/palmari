@@ -16,7 +16,6 @@ from skimage.filters import sato, threshold_local
 
 from ..tif_tools.intensity import mean_intensity_center
 from ..tif_tools.correct_drift import correct_drift
-from ..tif_tools.localization import localize_movie
 
 if TYPE_CHECKING:
     from .experiment import Experiment
@@ -306,27 +305,6 @@ class Acquisition:
                 "Localization step has already been done for file %s"
                 % self.tif_file
             )
-
-    def _localize(
-        self, threshold, sliding_window_filter, subpixel_mode, **args
-    ):
-
-        data = self.image
-        self._raw_locs = localize_movie(
-            data,
-            progress_bar=True,
-            verbose=False,
-            sliding_filter=sliding_window_filter,
-            factor=threshold,
-            subpixel_mode=subpixel_mode,
-        )
-        self._raw_locs["t"] = self._raw_locs["frame"] * self.experiment.DT
-        self._raw_locs[
-            ["x", "y"]
-        ] *= self.experiment.pixel_size  # x, y are in um
-        N = self._raw_locs.shape[0]
-        T = data.shape[0]
-        logging.info("==== %d locs\t %.2f / frame" % (N, N / T))
 
     def _save_raw_locs(self):
         storage_path = self.raw_locs_path

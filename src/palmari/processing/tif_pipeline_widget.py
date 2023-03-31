@@ -83,7 +83,7 @@ class TifPipelineWidget(QWidget):
     ):
         super().__init__()
 
-        self.pixel_size = 0.093
+        self.pixel_size = 1.00
         self.delta_t = 0.03
         self.to_export = None
         self.viewer = napari_viewer
@@ -492,13 +492,19 @@ class TifPipelineWidget(QWidget):
                 self.to_export = None
             self.export_locs_button.setEnabled(is_final_step)
 
+        def to_dask(array):
+            if isinstance(array, da.Array):
+                return array
+            else:
+                return da.from_array(array)
+
         @thread_worker(connect={"returned": add_layer})
         def run_step(checked: bool = True):
             logging.debug(self._layers)
             assert input_layer_idx in self._layers
             self.setEnabled(False)
             if input_type == handled_types.image:
-                input_data = (self._layers[input_layer_idx].data,)
+                input_data = (to_dask(self._layers[input_layer_idx].data),)
             elif input_type == handled_types.points:
                 input_data = (self._layers[input_layer_idx].result,)
             elif input_type == handled_types.tracks:
@@ -512,7 +518,7 @@ class TifPipelineWidget(QWidget):
                 # On inverse x et y volontairement
                 detections[["y", "x"]] = detections[["x", "y"]].astype(int)
                 input_data = (
-                    self._layers[input_layer_idx - 1].data,
+                    to_dask(self._layers[input_layer_idx - 1].data),
                     detections,
                 )
             elif input_type == handled_types.image_locs_and_pixel_size:
@@ -524,7 +530,7 @@ class TifPipelineWidget(QWidget):
                 # On inverse x et y volontairement
                 # detections[["y", "x"]] = detections[["x", "y"]].astype(int)
                 input_data = (
-                    self._layers[0].data,
+                    to_dask(self._layers[0].data),
                     self._layers[input_layer_idx].result,
                     self.pixel_size,
                 )
@@ -577,22 +583,24 @@ class TifPipelineWidget(QWidget):
 
     def add_points_layer(
         self,
-        points,
+        points: pd.DataFrame,
         layer_idx: int,
         step_name: str,
     ):
 
         if layer_idx not in self._layers:
-            new_layer = self.viewer.add_points(
-                points[["frame", "x", "y"]].values,
-                properties=points[
+            points_ = points.astype({"x":float,"y":float,"frame":float})
+            properties = points_[
                     [
                         c
-                        for c in points.columns
+                        for c in points_.columns
                         if (c not in ["x", "y"])
-                        and (points[c].dtype.kind in "uifb")
+                        and (points_[c].dtype.kind in "uifb")
                     ]
-                ].to_dict(),
+                ].to_dict(orient="list")
+            new_layer = self.viewer.add_points(
+                points_[["frame", "x", "y"]].values,
+                properties=properties,
                 symbol="disc",
                 size=0.25,
                 edge_width=0.1,
