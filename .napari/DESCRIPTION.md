@@ -82,7 +82,9 @@ Many plugins may be used in the course of published (or publishable) research, a
 during conference talks and other public facing events. If you'd like to be cited in
 a particular format, or have a DOI you'd like used, you should provide that information here. -->
 
-Process your SPT-PALM recordings with PALMari's all-inclusive pipeline: spot detection, sub-pixel localization, tracking & more.
+## Description
+
+Palmari allows you to process your SPT recordings (PALM or other modalities, 2D) with an all-inclusive pipeline: spot detection, sub-pixel localization, tracking & more.
 Start quickly with default parameters or customize your pipeline, and run it on entire folder of microscope recordings.
 
 ## Getting Help
