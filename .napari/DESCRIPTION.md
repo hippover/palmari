@@ -93,11 +93,11 @@ Start quickly with default parameters or customize your pipeline, and run it on 
 
 To run PALMari on a single microscope recording, click on "palmari > run PALMari on file..." You'll see a panel open on the right with a pre-loaded default analysis pipeline.
 
-![Default pipeline](panel-ouvert.png)
+![Default pipeline](https://github.com/hippover/palmari/blob/main/.napari/panel-ouvert.png)
 
 You can run steps of the pipeline one after the other and tweak the parameters so that they suit your experimental setup. You can also add and remove processing steps by clicking on the "Edit pipeline" button.
 
-![Visualize results at each step of the process](panel-steps.png)
+![Visualize results at each step of the process](https://github.com/hippover/palmari/blob/main/.napari/panel-steps.png)
 
 When you're satisfied with te results, just click on "Save locs and tracks" to export localizations and trajectories in a CSV format.
 

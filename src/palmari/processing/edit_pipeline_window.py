@@ -92,7 +92,9 @@ class PipelineEditor(QDialog):
     def populate_steps_view(self):
         try:
             self.steps_view.currentItemChanged.disconnect()
-        except TypeError as e:
+        except Exception as e:
+            logging.error("For some reason, could not disconnect the currentItemChanged slot")
+            logging.error(e)
             pass
 
         self.steps_view.clear()
