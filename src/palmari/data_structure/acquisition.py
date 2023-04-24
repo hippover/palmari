@@ -58,7 +58,6 @@ class Acquisition:
         """
         if not hasattr(self, "_image"):
             logging.info("Loading tif file %s" % self.tif_file)
-            # self._image = tifffile.imread(
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 self._image = dask_image.imread.imread(

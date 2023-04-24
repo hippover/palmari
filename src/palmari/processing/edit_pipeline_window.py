@@ -10,7 +10,7 @@ from qtpy.QtWidgets import (
     QTreeWidgetItem,
 )
 from qtpy import QtCore
-
+import logging
 from magicgui.widgets import LineEdit
 
 from .tif_pipeline import TifPipeline
@@ -101,6 +101,14 @@ class PipelineEditor(QDialog):
             # Indicate that it cannot be selected, using Flags
             step_type_item.setFlags(QtCore.Qt.ItemIsEnabled)
             step_type_item.setText(0, step_type)
+            
+            # First, we display all present stpes, in the correct order
+            included_steps = [s for s in steps if self.tp.contains_class(s[0])]
+            included_steps_indices = [self.tp.index_of(s[0]) for s in included_steps]
+            included_steps = [included_steps[i] for i in included_steps_indices]
+            # Then, all other possible steps
+            not_included_steps = [s for s in steps if not self.tp.contains_class(s[0])]
+            steps = included_steps + not_included_steps
             for (step_name, step_class) in steps:
                 step_item = QTreeWidgetItem()
                 step_item.setText(0, step_name)
@@ -164,26 +172,34 @@ class PipelineEditor(QDialog):
             return step_name
         except IndexError as e:
             return None
+        
+    def move_step(self, up):
+        step_name = self.selected_step_name()
+        if step_name is None:
+            return
+        step_type = self.tp.step_type_of(step_name)
+        old_index = self.tp.index_of(step_name)
+        tp_dict = self.tp.to_dict()
+        if up:
+            new_index = max(old_index - 1, 0)
+        else:
+            new_index = min(old_index + 1, len(tp_dict[step_type]) - 1)
+        #print("Step : %s \t New index : %d, old index: %d" % (step_name, new_index,old_index))
+        item = self.tp[step_type][old_index]
+        #print(tp_dict[step_type])
+        tp_dict[step_type].pop(old_index)
+        #print(tp_dict[step_type])
+        tp_dict[step_type].insert(new_index, item)
+        #print(tp_dict[step_type])
+        self.tp = TifPipeline.from_dict(tp_dict)
+        #print(self.tp.to_dict())
+        self.populate_steps_view()
 
     def move_step_up(self):
-        step_name = self.selected_step_name()
-        if step_name is None:
-            return
-        step_type = self.tp.step_type_of(step_name)
-        old_index = self.tp.index_of(step_name)
-        new_index = max(old_index - 1, 0)
-        self.tp[step_type].insert(new_index, self.tp[step_type].pop(old_index))
-        self.populate_steps_view()
+        self.move_step(up=True)
 
     def move_step_down(self):
-        step_name = self.selected_step_name()
-        if step_name is None:
-            return
-        step_type = self.tp.step_type_of(step_name)
-        old_index = self.tp.index_of(step_name)
-        new_index = max(old_index + 1, len(self.tp[step_type]) - 1)
-        self.tp[step_type].insert(new_index, self.tp[step_type].pop(old_index))
-        self.populate_steps_view()
+        self.move_step(up=False)
 
     def add_step(self):
         step_name = self.selected_step_name()

@@ -13,17 +13,17 @@ from qtpy.QtWidgets import (
     QHBoxLayout,
     QLabel,
 )
-from qtpy.QtCore import pyqtSignal
+from qtpy.QtCore import Signal
 from magicgui.widgets import FileEdit, FloatSpinBox, LineEdit, ProgressBar
 from threading import Thread
 
 
 class PipelineRunner(QWidget):
 
-    progressChanged = pyqtSignal(int)
-    progressRunning = pyqtSignal(bool)
-    nFilesChanged = pyqtSignal(int)
-    nameProcessingFile = pyqtSignal(str)
+    progressChanged = Signal(int)
+    progressRunning = Signal(bool)
+    nFilesChanged = Signal(int)
+    nameProcessingFile = Signal(str)
 
     def __init__(self):
         super().__init__()

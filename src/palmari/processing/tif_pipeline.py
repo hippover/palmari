@@ -30,6 +30,9 @@ class TifPipeline:
         self.tracker = tracker
         self.last_storage_path = None
 
+    def __getitem__(self, item):
+        return self.to_dict()[item]
+
     @classmethod
     def from_dict(cls, p: Dict):
         """
@@ -206,10 +209,10 @@ class TifPipeline:
                 continue
             if isinstance(steps, list):
                 # Si possible d'avoir plusieurs items, on trouve le rang
-                for step_dict in steps:
-                    for i, option in enumerate(step_dict):
-                        if step == option:
-                            return step_type
+                for step_num, step_dict in enumerate(steps):
+                    step_name = list(step_dict.keys())[0]
+                    if step_name == step: 
+                        return step_num
             else:
                 assert isinstance(steps, dict), steps
                 # Sinon, on renvoie zéro parce qu'il n'y a forcément qu'un step

@@ -84,8 +84,26 @@ a particular format, or have a DOI you'd like used, you should provide that info
 
 ## Description
 
-Palmari allows you to process your SPT recordings (PALM or other modalities, 2D) with an all-inclusive pipeline: spot detection, sub-pixel localization, tracking & more.
+PALMari allows you to process your SPT recordings (PALM or other modalities, 2D) with an all-inclusive pipeline: spot detection, sub-pixel localization, tracking & more.
 Start quickly with default parameters or customize your pipeline, and run it on entire folder of microscope recordings.
+
+## Quickstart
+
+### On a single recording
+
+To run PALMari on a single microscope recording, click on "palmari > run PALMari on file..." You'll see a panel open on the right with a pre-loaded default analysis pipeline.
+
+![Default pipeline](panel-ouvert.png)
+
+You can run steps of the pipeline one after the other and tweak the parameters so that they suit your experimental setup. You can also add and remove processing steps by clicking on the "Edit pipeline" button.
+
+![Visualize results at each step of the process](panel-steps.png)
+
+When you're satisfied with te results, just click on "Save locs and tracks" to export localizations and trajectories in a CSV format.
+
+### On a series of files
+
+Once you've set up your processing pipeline, you can save it by clicking on "save pipeline" under the form of a yaml file. Then, to use it to process all your acquisitions within a same series of experimental recordings, click on "palmari > run PALMari on folder...", load the pipeline, select the folder where your files lie, and click process !
 
 ## Getting Help
 
