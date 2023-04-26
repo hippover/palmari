@@ -16,6 +16,7 @@ from qtpy.QtWidgets import (
     QScrollArea,
     QTabWidget,
 )
+from qtpy.compat import getsavefilename
 
 from magicgui.widgets import FileEdit
 from functools import partial
@@ -36,7 +37,7 @@ import pandas as pd
 import logging
 import os
 from ..data_structure.acquisition import Acquisition
-from .tif_pipeline import TifPipeline, ProcessingStep
+from .image_pipeline import ImagePipeline, ProcessingStep
 from .edit_pipeline_window import PipelineEditor
 
 
@@ -77,9 +78,9 @@ class ProcessingStepWidget(Container):
         super().__init__(widgets=[w for _, w in self.widgets_dict.items()])
 
 
-class TifPipelineWidget(QWidget):
+class ImagePipelineWidget(QWidget):
     def __init__(
-        self, tif_pipeline: TifPipeline, napari_viewer: napari.Viewer
+        self, image_pipeline: ImagePipeline, napari_viewer: napari.Viewer
     ):
         super().__init__()
 
@@ -87,7 +88,7 @@ class TifPipelineWidget(QWidget):
         self.delta_t = 0.03
         self.to_export = None
         self.viewer = napari_viewer
-        self.tp = tif_pipeline
+        self.tp = image_pipeline
         self._init_layers_dict()
         self.setup_ui()
 
@@ -271,7 +272,7 @@ class TifPipelineWidget(QWidget):
 
     def load_pipeline(self, file_path):
         try:
-            tp = TifPipeline.from_yaml(file_path)
+            tp = ImagePipeline.from_yaml(file_path)
         except BaseException as e:
             logging.error(e)
             logging.error(
@@ -331,20 +332,23 @@ class TifPipelineWidget(QWidget):
 
     def export_locs(self):
         assert self.to_export is not None
-        fileName, _ = QFileDialog.getSaveFileName(
-            self,
+        fileName, _ = getsavefilename(
+            parent=self,
             caption="Export localizations and tracks",
-        )
+            )
         logging.debug(fileName)
         if fileName is not None and len(fileName) > 2:
+            if "." not in fileName:
+                fileName = "%s.csv" % fileName
             self.to_export.to_csv(fileName, index=True)
 
     def export_pipeline(self):
-        fileName, _ = QFileDialog.getSaveFileName(
-            self,
-            directory=self.tp.last_storage_path,
+        fileName, _ = getsavefilename(
+            parent=self,
+            basedir=self.tp.last_storage_path,
             caption="Save pipeline parameters",
         )
+        
         logging.debug(fileName)
 
         if fileName is not None and len(fileName) > 2:
@@ -645,33 +649,28 @@ class TifPipelineWidget(QWidget):
     @classmethod
     def view_pipeline(
         cls,
-        tif_pipeline: TifPipeline,
+        image_pipeline: ImagePipeline,
         acq: Acquisition = None,
-        tif_file: str = None,
+        image_file: str = None,
     ):
         napari.Viewer()
         viewer = napari.current_viewer()
-        widget = cls(tif_pipeline, viewer)
+        widget = cls(image_pipeline, viewer)
 
         if acq is not None:
             widget.pixel_size = acq.experiment.pixel_size
             widget.delta_t = acq.experiment.DT
             viewer.add_image(
                 data=acq.image,
-                name=acq.tif_file.split(os.path.sep)[-1],
+                name=acq.image_file.split(os.path.sep)[-1],
                 scale=(1.0, widget.pixel_size, widget.pixel_size),
             )
-        elif tif_file is not None:
-            viewer.add_image(
-                data=dask_image.imread.imread(
-                    tif_file,
-                    nframes=300,
-                )
-            )
+        elif image_file is not None:
+            viewer.open(image_file)
 
         viewer.window.add_dock_widget(
             widget=widget,
-            name="PALM pipeline : %s" % tif_pipeline.name,
+            name="PALM pipeline : %s" % image_pipeline.name,
             area="right",
         )
         widget.rescale_image_layers()

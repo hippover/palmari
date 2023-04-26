@@ -1,2 +1,2 @@
-from .tif_pipeline import TifPipeline
-#from .tif_pipeline_widget import TifPipelineWidget
+from .image_pipeline import ImagePipeline
+#from .image_pipeline_widget import ImagePipelineWidget

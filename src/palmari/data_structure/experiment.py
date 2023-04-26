@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from typing import List
 import numpy as np
 from typing import TYPE_CHECKING
-from dask_image.imread import imread
 
 from .acquisition import Acquisition
 
@@ -67,33 +66,9 @@ class Experiment:
         return self.index_df.shape[0]
 
     @classmethod
-    def from_single_tif(cls, tif_file: str, export_folder: str):
-        data_folder = os.path.split(tif_file)[0]
+    def from_single_tif(cls, image_file: str, export_folder: str):
+        data_folder = os.path.split(image_file)[0]
         return Experiment(data_folder=data_folder, export_folder=export_folder)
-
-    """
-    def to_tracksets(self, tif_pipeline: TifPipeline) -> TrackSets:
-        tracksets = []
-        included_files = []
-        for tif_file in self:
-            acq = Acquisition(
-                tif_file=tif_file, experiment=self, tif_pipeline=tif_pipeline
-            )
-            if not acq.is_processed:
-                logging.debug("Not including %s" % tif_file)
-                continue
-            included_files.append(tif_file)
-            tracksets.append(
-                TrackSet(locs_path=acq.locs_path, origin_file=tif_file)
-            )
-        return TrackSets(
-            tracksets=tracksets,
-            root_folder=self.export_folder,
-            index_df=self.index_df.loc[
-                self.index_df.file.isin(included_files)
-            ],
-        )
-    """
 
     def check_export_folder_and_load_info(self):
         json_path = os.path.join(self.export_folder, "exp_info.json")
@@ -269,7 +244,7 @@ class Experiment:
                 f
                 for f in files
                 if Acquisition(
-                    f, experiment=self, tif_pipeline=only_processed_with_run
+                    f, experiment=self, image_pipeline=only_processed_with_run
                 ).is_processed
             ]
         return files
@@ -296,8 +271,6 @@ class Experiment:
         roi_files = [
             f for f in roi_files if os.path.getsize(f) > 1e6
         ]  # Don't consider files of less than 1Mb
-        roi_files = [f for f in roi_files if imread(f).ndim == 3]
-        roi_files = [f for f in roi_files if min(imread(f).shape) >= 5]
         return roi_files
 
     def look_for_updates(self):
@@ -325,9 +298,9 @@ class Experiment:
 
     def get_ID_of_acq(self, acquisition: Acquisition):
         ID = self.index_df.loc[
-            self.index_df.file == acquisition.tif_file, "ID"
+            self.index_df.file == acquisition.image_file, "ID"
         ].values[0]
-        logging.debug("ID of file %s is %s" % (acquisition.tif_file, ID))
+        logging.debug("ID of file %s is %s" % (acquisition.image_file, ID))
         return str(ID)
 
     def look_for_new_columns(self, overwrite=False):

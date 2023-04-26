@@ -1,7 +1,7 @@
 from napari import Viewer
 import os
 
-from .processing import TifPipeline
+from .processing import ImagePipeline
 from .processing.steps import *
 from qtpy.QtWidgets import (
     QDialog,
@@ -152,7 +152,7 @@ class PipelineRunner(QWidget):
 
     def load_pipeline(self, file_path):
         try:
-            tp = TifPipeline.from_yaml(file_path)
+            tp = ImagePipeline.from_yaml(file_path)
             self.tp = tp
         except BaseException as e:
             print(e)
@@ -177,7 +177,7 @@ class PipelineRunner(QWidget):
         self.progressRunning.emit(True)
         for i, f in enumerate(exp):
             self.nameProcessingFile.emit("Processing %s ..." % f)
-            acq = Acquisition(f, experiment=exp, tif_pipeline=self.tp)
+            acq = Acquisition(f, experiment=exp, image_pipeline=self.tp)
             if i == 0:
                 pipeline_export_path_for_exp = self.tp.exp_params_path(acq)
                 logging.info(
@@ -200,7 +200,7 @@ class PipelineRunner(QWidget):
             return None
 
     @tp.setter
-    def tp(self, tp: TifPipeline):
+    def tp(self, tp: ImagePipeline):
         self._tp = tp
         self.enable_run_button()
         self.setWindowTitle("Palmari | %s" % tp.name)

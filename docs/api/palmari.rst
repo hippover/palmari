@@ -10,7 +10,7 @@ Subpackages
    palmari.data_structure
    palmari.processing
    palmari.quot
-   palmari.tif_tools
+   palmari.image_tools
 
 Module contents
 ---------------

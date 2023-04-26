@@ -1,28 +1,28 @@
-.. _tif_pipeline:
+.. _image_pipeline:
 
 TIF processing pipeline
 =======================
 
-The ``TifPipeline`` class
+The ``ImagePipeline`` class
 -------------------------
 
 Palmari provides a customizable pipeline structure for extracting localizations and tracks from PALM movies.
-These steps are handled by the :py:class:`TifPipeline` class.
+These steps are handled by the :py:class:`ImagePipeline` class.
 
 It is very easy to instanciate a default pipeline, containing only the minimal localization and tracking steps with default parameters :
 
 .. code-block:: python3
 
-    from palmari import TifPipeline
+    from palmari import ImagePipeline
 
-    tp = TifPipeline.default_with_name("my_pipeline")
+    tp = ImagePipeline.default_with_name("my_pipeline")
 
 A pipeline's name is used when exporting the localizations ot the movies it processes (hey are placed in a folder named after the pipeline). 
 Indeed, you might want to store localizations obtained using various pipelines applied on a same movie, 
 in order to investigate the influence of the image processing step on your findings.
 
 It takes just one line to run a pipeline on a movie or a batch of movies. 
-The ``TifPipeline`` class uses `Dask <https://dask.org/>`_ 
+The ``ImagePipeline`` class uses `Dask <https://dask.org/>`_ 
 to take advantage of multithreading when possible and limit the memory footprint of the processing.
 By default, it will not re-process movies on which it has already been run. 
 
@@ -172,12 +172,12 @@ If a class has no parameters, simply use an empty dictionnary as a value : ``{"M
 
 .. code-block:: python3
 
-    tp = TifPipeline.from_dict({
+    tp = ImagePipeline.from_dict({
         "name":"default_with_percentile_filtering",
         "movie_preprocessors":[{"WindowPercentileFilter":{"percentile":10,"window_size":300}}]
     })
 
-    tp = TifPipeline.from_dict({
+    tp = ImagePipeline.from_dict({
         "name":"stricter_than_default",
         "localizer":{"Detector":{"t":1.5}},
     )
@@ -190,7 +190,7 @@ Pipelines can be exported and loaded from YAML files, so that they can easily be
 .. code-block:: python3
 
     tp.to_yaml("myproject/mypipeline.yaml") # Export
-    tp = TifPipeline.from_yaml("myproject/mypipeline.yaml") # Load
+    tp = ImagePipeline.from_yaml("myproject/mypipeline.yaml") # Load
 
 The YAML file for the ``tp2`` pipeline is 
 
@@ -209,16 +209,16 @@ The YAML file for the ``tp2`` pipeline is
 Tune your pipeline with the Napari viewer
 -----------------------------------------
 
-If you would like to adjust your pipeline's parameters on one of your movies, you can use the :py:func:`TifPipelineWidget.view_pipeline` function. 
+If you would like to adjust your pipeline's parameters on one of your movies, you can use the :py:func:`ImagePipelineWidget.view_pipeline` function. 
 This will open a Napari viewer allowing you to see the effect of each step's parameters on the processing of your movie.
 When you're satisfied, save the pipeline to a file by clicking the "Export pipeline" button ! 
-You'll then be able to load it in a script or notebook using :py:func:`TifPipeline.from_yaml`.
+You'll then be able to load it in a script or notebook using :py:func:`ImagePipeline.from_yaml`.
 
 .. code-block:: python3
 
-    TifPipelineWidget.view_pipeline(acq=acq)
+    ImagePipelineWidget.view_pipeline(acq=acq)
     # or
-    TifPipelineWidget.view_pipeline(tif_file="ROI.tif")
+    ImagePipelineWidget.view_pipeline(image_file="ROI.tif")
 
 .. image:: images/pipeline_edit.png
 
@@ -230,7 +230,7 @@ Make your own processing steps !
 Do you want to remove some artifact proper to your optical setup ? 
 To use the new state-of-the-art localizer instead of the rudimentary one provided by PALM-tools (inspired from ThunderSTORM's one) ?
 
-**Good news** : the :py:class:`TifPipeline` class is actually quite customizable and open to add-ons ! 
+**Good news** : the :py:class:`ImagePipeline` class is actually quite customizable and open to add-ons ! 
 If you want to use your own steps, subclass the corresponding abstract base class : 
 for a localizer, :py:class:`Localizer`, for a movie pre-processor, :py:class:`MoviePreprocessor`, etc...
 

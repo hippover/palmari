@@ -13,15 +13,15 @@ from qtpy import QtCore
 import logging
 from magicgui.widgets import LineEdit
 
-from .tif_pipeline import TifPipeline
+from .image_pipeline import ImagePipeline
 
 
 class PipelineEditor(QDialog):
-    def __init__(self, tif_pipeline: TifPipeline):
+    def __init__(self, image_pipeline: ImagePipeline):
         super().__init__()
 
-        self.initial_tp_dict = dict(tif_pipeline.to_dict())
-        self.tp = tif_pipeline
+        self.initial_tp_dict = dict(image_pipeline.to_dict())
+        self.tp = image_pipeline
         self.setup_ui()
         self.selected_class(None)
         self.setModal(True)
@@ -130,7 +130,7 @@ class PipelineEditor(QDialog):
         self.selected_index()
 
     def cancel(self):
-        self.tp = TifPipeline.from_dict(self.initial_tp_dict)
+        self.tp = ImagePipeline.from_dict(self.initial_tp_dict)
         self.reject()
 
     def selected_index(self):
@@ -193,7 +193,7 @@ class PipelineEditor(QDialog):
         #print(tp_dict[step_type])
         tp_dict[step_type].insert(new_index, item)
         #print(tp_dict[step_type])
-        self.tp = TifPipeline.from_dict(tp_dict)
+        self.tp = ImagePipeline.from_dict(tp_dict)
         #print(self.tp.to_dict())
         self.populate_steps_view()
 

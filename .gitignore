@@ -67,6 +67,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# Test data
+data*
+
 # Pycharm and VSCode
 .idea/
 venv/

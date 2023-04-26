@@ -8,42 +8,42 @@ import numpy as np
 import trackpy as tp
 import logging
 from glob import glob
-import dask_image.imread
 import dask.array as da
 import dask_image.ndfilters
 from skimage.filters import sato, threshold_local
+from aicsimageio import AICSImage
 
 
-from ..tif_tools.intensity import mean_intensity_center
-from ..tif_tools.correct_drift import correct_drift
+from ..image_tools.intensity import mean_intensity_center
+from ..image_tools.correct_drift import correct_drift
 
 if TYPE_CHECKING:
     from .experiment import Experiment
-    from ..processing.tif_pipeline import TifPipeline
+    from ..processing.image_pipeline import ImagePipeline
 
 
 class Acquisition:
     """
     An acquisition corresponds to a PALM movie.
-    It is part of an :py:class:`Experiment`, and bound to a :py:class:`TifPipeline` with which it is processed.
+    It is part of an :py:class:`Experiment`, and bound to a :py:class:`ImagePipeline` with which it is processed.
     """
 
     def __init__(
         self,
-        tif_file,
+        image_file,
         experiment: Experiment,
-        tif_pipeline: TifPipeline,
+        image_pipeline: ImagePipeline,
     ):
-        self.tif_file = tif_file
-        self.tif_pipeline = tif_pipeline
+        self.image_file = image_file
+        self.image_pipeline = image_pipeline
         self.experiment = experiment
         self.export_root = os.path.join(
             self.experiment.export_folder,
-            self.tif_pipeline.name,
-            ".".join(self.tif_file.split(".")[:-1]),
+            self.image_pipeline.name,
+            ".".join(self.image_file.split(".")[:-1]),
         )
         logging.debug(
-            "export_root : file %s -> %s" % (self.tif_file, self.export_root)
+            "export_root : file %s -> %s" % (self.image_file, self.export_root)
         )
         export_parent_folder = os.sep.join(self.export_root.split(os.sep)[:-1])
         os.makedirs(export_parent_folder, exist_ok=True)
@@ -57,13 +57,12 @@ class Acquisition:
             da.Array: the movie.
         """
         if not hasattr(self, "_image"):
-            logging.info("Loading tif file %s" % self.tif_file)
+            logging.info("Loading tif file %s" % self.image_file)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self._image = dask_image.imread.imread(
-                    os.path.join(self.experiment.data_folder, self.tif_file),
-                    nframes=300,
-                )
+                image_path = os.path.join(self.experiment.data_folder, self.image_file)
+                self._image = da.rechunk(da.squeeze(AICSImage(image_path).dask_data),chunks={0:"auto",1:-1,2:-1})
+                assert len(self._image.shape) == 3, "Images should have 3 dimensions of size > 1"
         return self._image
 
     def get_property(self, col: str) -> Any:
@@ -76,7 +75,7 @@ class Acquisition:
             Any: value of the corresponding row x column in the experiment's index table
         """
         df = self.experiment.index_df
-        return df.loc[df.file == self.tif_file, col].values[0]
+        return df.loc[df.file == self.image_file, col].values[0]
 
     @property
     def ID(self) -> str:
@@ -259,14 +258,14 @@ class Acquisition:
             self._intensity = mean_intensity_center(self.image)
             self._save_intensity()
         else:
-            logging.info("%s : intensity is already computed" % self.tif_file)
+            logging.info("%s : intensity is already computed" % self.image_file)
 
     def _save_intensity(self):
         storage_path = self.intensity_path
         self._intensity.to_csv(storage_path, index=False)
         logging.info(
             "Stored Intensity of ROI %s at path %s"
-            % (self.tif_file, storage_path)
+            % (self.image_file, storage_path)
         )
 
     def compute_tubeness(self):
@@ -274,7 +273,7 @@ class Acquisition:
             self._compute_tubeness()
             self._save_tubeness()
         else:
-            logging.info("%s : tubeness was already processed" % self.tif_file)
+            logging.info("%s : tubeness was already processed" % self.image_file)
 
     def _compute_tubeness(self):
 
@@ -296,13 +295,13 @@ class Acquisition:
 
     def localize(self):
         if not self.is_localized:
-            logging.info("Running localization for file %s" % self.tif_file)
-            self._localize(**self.tif_pipeline.params.loc_params)
+            logging.info("Running localization for file %s" % self.image_file)
+            self._localize(**self.image_pipeline.params.loc_params)
             self._save_raw_locs()
         else:
             logging.info(
                 "Localization step has already been done for file %s"
-                % self.tif_file
+                % self.image_file
             )
 
     def _save_raw_locs(self):
@@ -310,12 +309,12 @@ class Acquisition:
         self._raw_locs.to_csv(storage_path, index=False)
         logging.info(
             "Stored raw locs of ROI %s at path %s"
-            % (self.tif_file, storage_path)
+            % (self.image_file, storage_path)
         )
 
     def correct_drift(self):
         if not self.drift_is_corrected:
-            if self.tif_pipeline.params.loc_params["correct_drift"] == True:
+            if self.image_pipeline.params.loc_params["correct_drift"] == True:
                 self._correct_drift()
             else:
                 self._locs = self.raw_locs
@@ -323,7 +322,7 @@ class Acquisition:
         else:
             logging.info(
                 "Drift correction step has already been done for file %s"
-                % self.tif_file
+                % self.image_file
             )
 
     def _correct_drift(self):
@@ -336,17 +335,17 @@ class Acquisition:
         storage_path = self.locs_path
         self._locs.to_csv(storage_path, index=False)
         logging.info(
-            "Stored locs of ROI %s at path %s" % (self.tif_file, storage_path)
+            "Stored locs of ROI %s at path %s" % (self.image_file, storage_path)
         )
 
     def track(self):
         if not self.is_tracked:
-            logging.info("Running tracking for file %s" % self.tif_file)
-            self._track(**self.tif_pipeline.params.track_params)
+            logging.info("Running tracking for file %s" % self.image_file)
+            self._track(**self.image_pipeline.params.track_params)
             self._save_locs()
         else:
             logging.info(
-                "Tracking was already done for file %s" % self.tif_file
+                "Tracking was already done for file %s" % self.image_file
             )
 
     def _track(self, mode, max_diffusivity):
@@ -369,7 +368,7 @@ class Acquisition:
         n_long_trajs = (traj_length >= 7).sum()
         logging.info(
             "Found %d long trajectories for file %s"
-            % (n_long_trajs, self.tif_file)
+            % (n_long_trajs, self.image_file)
         )
 
     # EXPLOITATION OF TRACKS AND LOCS
@@ -424,7 +423,7 @@ class Acquisition:
 
     def basic_stats(self):
         stats = {}
-        stats["file"] = self.tif_file
+        stats["file"] = self.image_file
         stats["n_frames"] = self.locs.frame.max()
         stats["duration"] = stats["n_frames"] * self.experiment.DT
         # the above is not exactly true, but is much faster than what's below
@@ -448,10 +447,10 @@ class Acquisition:
     ):
         import napari
         
-        viewer = napari.viewer.Viewer(title=os.path.dirname(self.tif_file))
+        viewer = napari.viewer.Viewer(title=os.path.dirname(self.image_file))
         viewer.add_image(
             self.image[:1000] if short_for_tests else self.image,
-            name=self.tif_file.split("/")[-1],
+            name=self.image_file.split("/")[-1],
             multiscale=False,
             contrast_limits=contrast_limits,
             scale=(1, self.experiment.pixel_size, self.experiment.pixel_size),

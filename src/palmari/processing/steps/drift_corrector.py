@@ -1,5 +1,5 @@
 from .base import *
-from ...tif_tools.correct_drift import correct_drift
+from ...image_tools.correct_drift import correct_drift
 from dask_image.ndfilters import gaussian_filter
 from .quot_localizer import BaseDetector, MaxLikelihoodLocalizer
 from scipy.ndimage import gaussian_filter1d

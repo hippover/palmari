@@ -7,7 +7,7 @@ Submodules
 palmari.tif\_tools.cell\_mask module
 ------------------------------------
 
-.. automodule:: palmari.tif_tools.cell_mask
+.. automodule:: palmari.image_tools.cell_mask
    :members:
    :undoc-members:
    :show-inheritance:
@@ -15,7 +15,7 @@ palmari.tif\_tools.cell\_mask module
 palmari.tif\_tools.correct\_drift module
 ----------------------------------------
 
-.. automodule:: palmari.tif_tools.correct_drift
+.. automodule:: palmari.image_tools.correct_drift
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ palmari.tif\_tools.correct\_drift module
 palmari.tif\_tools.density\_filtering module
 --------------------------------------------
 
-.. automodule:: palmari.tif_tools.density_filtering
+.. automodule:: palmari.image_tools.density_filtering
    :members:
    :undoc-members:
    :show-inheritance:
@@ -31,7 +31,7 @@ palmari.tif\_tools.density\_filtering module
 palmari.tif\_tools.intensity module
 -----------------------------------
 
-.. automodule:: palmari.tif_tools.intensity
+.. automodule:: palmari.image_tools.intensity
    :members:
    :undoc-members:
    :show-inheritance:
@@ -39,7 +39,7 @@ palmari.tif\_tools.intensity module
 palmari.tif\_tools.localization module
 --------------------------------------
 
-.. automodule:: palmari.tif_tools.localization
+.. automodule:: palmari.image_tools.localization
    :members:
    :undoc-members:
    :show-inheritance:
@@ -47,7 +47,7 @@ palmari.tif\_tools.localization module
 Module contents
 ---------------
 
-.. automodule:: palmari.tif_tools
+.. automodule:: palmari.image_tools
    :members:
    :undoc-members:
    :show-inheritance:

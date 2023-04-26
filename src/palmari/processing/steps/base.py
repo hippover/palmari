@@ -214,7 +214,7 @@ class SubpixelLocalizer(ProcessingStep):
         self, img: np.array, detections: np.array
     ) -> pd.DataFrame:
         """
-        Extract localizations from a slice of a .tif file. Override in subclasses
+        Extract localizations from a slice of an image file. Override in subclasses
 
         Args:
             img (np.array): 2D array [X, Y]

@@ -12,7 +12,7 @@ from ..data_structure.experiment import Experiment
 from .steps import *
 
 
-class TifPipeline:
+class ImagePipeline:
     def __init__(
         self,
         name: str,
@@ -346,7 +346,7 @@ class TifPipeline:
 
             for i, acq_file in enumerate(to_process):
                 acq = Acquisition(
-                    acq_file, experiment=to_process, tif_pipeline=self
+                    acq_file, experiment=to_process, image_pipeline=self
                 )
                 if i == 0:
                     pipeline_export_path_for_exp = self.exp_params_path(acq)

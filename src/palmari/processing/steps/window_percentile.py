@@ -1,5 +1,5 @@
 from .base import *
-from ...tif_tools.localization import sliding_window_filter
+from ...image_tools.localization import sliding_window_filter
 
 
 class WindowPercentileFilter(MoviePreProcessor):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .processing.tif_pipeline_widget import TifPipelineWidget
-from .processing.tif_pipeline import TifPipeline
+from .processing.image_pipeline_widget import ImagePipelineWidget
+from .processing.image_pipeline import ImagePipeline
 from .processing.steps import *
 
 from typing import TYPE_CHECKING
@@ -9,9 +9,9 @@ if TYPE_CHECKING:
     from napari import Viewer
 
 
-class PalmariWidget(TifPipelineWidget):
+class PalmariWidget(ImagePipelineWidget):
     def __init__(self, napari_viewer: Viewer):
-        tp = TifPipeline.from_dict(
+        tp = ImagePipeline.from_dict(
             {
                 "name": "palmari-default",
                 "detector": {"BaseDetector": {"k": 1.5, "w": 21, "t": 1.0}},
@@ -33,4 +33,4 @@ class PalmariWidget(TifPipelineWidget):
             }
         )
         print(tp)
-        super().__init__(tif_pipeline=tp, napari_viewer=napari_viewer)
+        super().__init__(image_pipeline=tp, napari_viewer=napari_viewer)

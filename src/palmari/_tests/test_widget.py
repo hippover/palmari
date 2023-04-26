@@ -1,4 +1,8 @@
 from .._widget import PalmariWidget
+from ..data_structure.acquisition import Acquisition
+from ..data_structure.experiment import Experiment
+from ..processing.image_pipeline import ImagePipeline
+from glob import glob
 import numpy as np
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object

@@ -23,7 +23,7 @@ palmari.processing.edit\_pipeline\_window module
 palmari.processing.tif\_pipeline module
 ---------------------------------------
 
-.. automodule:: palmari.processing.tif_pipeline
+.. automodule:: palmari.processing.image_pipeline
    :members:
    :undoc-members:
    :show-inheritance:
@@ -31,7 +31,7 @@ palmari.processing.tif\_pipeline module
 palmari.processing.tif\_pipeline\_widget module
 -----------------------------------------------
 
-.. automodule:: palmari.processing.tif_pipeline_widget
+.. automodule:: palmari.processing.image_pipeline_widget
    :members:
    :undoc-members:
    :show-inheritance:

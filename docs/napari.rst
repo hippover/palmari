@@ -35,7 +35,7 @@ Customizing the pipeline
 
 Do you want to add a drift correction step, or to use a different tracking algorithm ? 
 Click on "Edit current pipeline" at the top of the panel, to change the steps.
-See :ref:`here <tif_pipeline>` for more information about the available processing steps.
+See :ref:`here <image_pipeline>` for more information about the available processing steps.
 
 .. figure:: images/napari_edit_pipeline.png
 
@@ -60,11 +60,11 @@ Click on "Process files" and you're all set ! The progress bar will keep you inf
 
 .. figure:: images/napari_process_folder.png
 
-    Process all ``.tif`` in a folder, directly from Napari.
+    Process all acquisitions in a folder, directly from Napari.
 
 Loading pipelines with Python
 -----------------------------
 
-You can also load pipelines programatically using Palmari's Python interface, with :py:func:`TifPipeline.from_yaml`.
+You can also load pipelines programatically using Palmari's Python interface, with :py:func:`ImagePipeline.from_yaml`.
 
-Conversely, if you've defined your :py:class:`TifPipeline` in a Python script or notebook, you can visualize its effect on an image using :py:func:`TifPipeline.open_in_napari()`.
+Conversely, if you've defined your :py:class:`ImagePipeline` in a Python script or notebook, you can visualize its effect on an image using :py:func:`ImagePipeline.open_in_napari()`.
