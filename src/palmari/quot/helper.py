@@ -32,7 +32,7 @@ import warnings
 # Profiling
 from time import time 
 
-from .plot import wireframe_overlay
+# from .plot import wireframe_overlay
 
 def time_f(f):
     """

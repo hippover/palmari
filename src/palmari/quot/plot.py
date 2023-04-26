@@ -11,7 +11,7 @@ import numpy as np
 from scipy import ndimage as ndi 
 
 # Image file reader
-from nd2reader import ND2Reader 
+# from nd2reader import ND2Reader 
 
 # Dataframes, for handling trajectories
 import pandas as pd 
@@ -138,6 +138,8 @@ def max_int_proj(axes, nd2_path, vmax_perc=99, vmin=None, cmap="gray",
         None; plots directly to *axes*
 
     """
+    from nd2reader import ND2Reader 
+    
     reader = ND2Reader(nd2_path)
     mip = reader.get_frame(0).astype(np.float64)
     for frame_idx in range(1, reader.metadata["total_images_per_channel"]):
