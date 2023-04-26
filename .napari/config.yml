@@ -1,0 +1,9 @@
+labels:
+  ontology: EDAM-BIOIMAGING:alpha06
+  terms:
+  - Single molecule localisation microscopy # Imaging modality
+  - Image time series
+  - 2D Image
+  - Single molecule localisation
+  - Particle tracking
+  - Drift correction
