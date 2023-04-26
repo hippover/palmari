@@ -10,9 +10,6 @@ import os
 import numpy as np 
 from scipy import ndimage as ndi 
 
-# Image file reader
-# from nd2reader import ND2Reader 
-
 # Dataframes, for handling trajectories
 import pandas as pd 
 

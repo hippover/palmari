@@ -13,8 +13,6 @@ import os
 import toml 
 
 # Underlying file readers for each file format
-import tifffile
-from nd2reader import ND2Reader 
 
 def read_config(path):
     """
@@ -74,9 +72,11 @@ class ImageReader(object):
 
         if '.nd2' in path:
             self.ext = '.nd2'
+            from nd2reader import ND2Reader 
             self._reader = ND2Reader(path)
         elif ('.tif' in path) or ('.tiff' in path):
             self.ext = '.tif'
+            import tifffile
             self._reader = tifffile.TiffFile(path)
         #elif ('.czi' in path):
         #    self.ext = '.czi'
