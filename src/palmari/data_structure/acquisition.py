@@ -61,7 +61,7 @@ class Acquisition:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 image_path = os.path.join(self.experiment.data_folder, self.image_file)
-                self._image = da.rechunk(da.squeeze(AICSImage(image_path).dask_data),chunks={0:"auto",1:-1,2:-1})
+                self._image = da.rechunk(da.squeeze(AICSImage(image_path).dask_data),chunks={0:255,1:-1,2:-1})
                 assert len(self._image.shape) == 3, "Images should have 3 dimensions of size > 1"
         return self._image
 

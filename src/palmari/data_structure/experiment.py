@@ -139,7 +139,7 @@ class Experiment:
             logging.info("JSON already exists : %s" % json_path)
             exp_info = json.load(open(json_path, "r"))
 
-            if not os.path.samefile(self.data_folder, exp_info["data_path"]):
+            if os.path.exists(exp_info["data_path"]) and not os.path.samefile(self.data_folder, exp_info["data_path"]):
                 logging.debug("Data folder is %s" % self.data_folder)
                 logging.debug(
                     "Data path in JSON in %s" % exp_info["data_path"]
@@ -188,19 +188,6 @@ class Experiment:
 
         """
         return {}
-
-    """
-    @property
-    def available_processing_runs(self) -> List[TifProcessingRun]:
-        if not hasattr(self, "_processing_runs"):
-            os.chdir(self.export_folder)
-            run_param_files = glob("*/run_params.json", recursive=True)
-            logging.info("%d available processing runs" % len(run_param_files))
-            self._processing_runs = [
-                TifProcessingRun.from_json(f, self) for f in run_param_files
-            ]
-        return self._processing_runs
-    """
 
     @property
     def all_files(self) -> List[str]:
@@ -267,7 +254,7 @@ class Experiment:
 
     def scan_folder(self) -> list:
         os.chdir(self.data_folder)
-        roi_files = glob("**/*%s" % self.file_pattern, recursive=True)
+        roi_files = glob("**%s*%s" % (os.path.sep, self.file_pattern), recursive=True)
         roi_files = [
             f for f in roi_files if os.path.getsize(f) > 1e6
         ]  # Don't consider files of less than 1Mb

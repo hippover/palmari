@@ -526,13 +526,6 @@ class ImagePipelineWidget(QWidget):
                     detections,
                 )
             elif input_type == handled_types.image_locs_and_pixel_size:
-                # detections = pd.DataFrame(
-                #    data=self._layers[input_layer_idx].data.copy(),
-                #    columns=["frame", "x", "y"],
-                # )
-                # detections[["x", "y"]] /= self.pixel_size
-                # On inverse x et y volontairement
-                # detections[["y", "x"]] = detections[["x", "y"]].astype(int)
                 input_data = (
                     to_dask(self._layers[0].data),
                     self._layers[input_layer_idx].result,

@@ -1,4 +1,5 @@
 from napari import Viewer
+from napari.qt import thread_worker
 import os
 
 from .processing import ImagePipeline
@@ -15,7 +16,6 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Signal
 from magicgui.widgets import FileEdit, FloatSpinBox, LineEdit, ProgressBar
-from threading import Thread
 
 
 class PipelineRunner(QWidget):
@@ -165,18 +165,33 @@ class PipelineRunner(QWidget):
     def run_pipeline(self):
         self.running = True
         self.enable_run_button()
-        # self._run_pipeline()
-        th = Thread(target=self._run_pipeline)
-        th.start()
-
-    def _run_pipeline(self):
-        exp = self.exp
-        assert exp is not None
-        self.nFilesChanged.emit(len(exp.scan_folder()))
+        worker = self._run_pipeline()
+        worker.finished.connect(self._run_finished)
+        worker.yielded.connect(self._run_progressed)
+        worker.started.connect(self._run_started)
+        worker.start()
+        
+    def _run_started(self):
+        assert self.exp is not None
+        self.nFilesChanged.emit(len(self.exp.scan_folder()))
         self.progressChanged.emit(0)
         self.progressRunning.emit(True)
+    
+    def _run_finished(self, exc):
+        self.progressRunning.emit(False)
+        self.enable_run_button()
+        
+    def _run_progressed(self, yielded):
+        image_number, image_file = yielded
+        if image_file != "DONE":
+            self.nameProcessingFile.emit("Processing %s ..." % image_file)
+        self.progressChanged.emit(image_number)
+
+    @thread_worker
+    def _run_pipeline(self):
+        exp = self.exp
         for i, f in enumerate(exp):
-            self.nameProcessingFile.emit("Processing %s ..." % f)
+            yield (i, f)
             acq = Acquisition(f, experiment=exp, image_pipeline=self.tp)
             if i == 0:
                 pipeline_export_path_for_exp = self.tp.exp_params_path(acq)
@@ -184,9 +199,8 @@ class PipelineRunner(QWidget):
                     "Saving pipeline to %s" % pipeline_export_path_for_exp
                 )
             self.tp.process(to_process=acq, force_reprocess=True)
-            self.progressChanged.emit(i + 1)
-        self.progressRunning.emit(False)
-        self.enable_run_button()
+        yield (i+1, "DONE")
+        
 
     ###
     # PROPERTIES

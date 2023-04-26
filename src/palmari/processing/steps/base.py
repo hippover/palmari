@@ -130,6 +130,7 @@ class Detector(ProcessingStep):
     def movie_detection(self, mov: da.Array):
         slice_size = mov.chunksize[0]
         n_slices = mov.shape[0] // slice_size
+        logging.warn("Slice size is %d, image is cut in %d slices" % (slice_size, n_slices))
         positions_dfs = []
         for i in range(n_slices + 1):
             start = i * slice_size
