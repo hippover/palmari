@@ -76,65 +76,9 @@ class Experiment:
             # Create a json file with experiment-level information
             logging.info("Create %s" % self.export_folder)
             os.mkdir(self.export_folder)
-
-        if not os.path.exists(json_path):
-            logging.info("JSON does not exist, create %s" % json_path)
-            # Quite some redundancies here...
-            pixel_size = self.pixel_size
-            if pixel_size is None:
-                pixel_size = 0.097
-                try:
-                    pixel_size = float(
-                        input("Pixel size, in microns (default is 0.097) : ")
-                    )
-                except BaseException as e:
-                    print(e)
-                    print(
-                        "Incorrect value, keeping default : %.2f um"
-                        % pixel_size
-                    )
-                self.pixel_size = pixel_size
-
-            DT = self.DT
-            if DT is None:
-                DT = 0.03
-                try:
-                    DT = float(
-                        input(
-                            "Time interval between successive frames, in seconds (default is 0.03) : "
-                        )
-                    )
-                except BaseException as e:
-                    print(e)
-                    print("Incorrect value, keeping default : %.2f s" % DT)
-                self.DT = DT
-
-            file_pattern = self.file_pattern
-            if file_pattern is None:
-                file_pattern = ".tif"
-                try:
-                    input_file_pattern = str(
-                        input('File pattern (default is ".tif") : ')
-                    )
-                    if len(input_file_pattern) > 0:
-                        file_pattern = input_file_pattern
-
-                except BaseException as e:
-                    print(e)
-                    print("Incorrect value, keeping default : %.2f s" % DT)
-                self.file_pattern = file_pattern
-
-            exp_info = {
-                "data_path": self.data_folder,
-                "pixel_size": self.pixel_size,
-                "file_pattern": self.file_pattern,
-                "DT": self.DT,
-            }
-            json.dump(
-                exp_info,
-                open(json_path, "w"),
-            )
-        else:
+            
+        exp_info = {}
+        if os.path.exists(json_path):
             # Read the JSON file and check that path of origin data is the same
             logging.info("JSON already exists : %s" % json_path)
             exp_info = json.load(open(json_path, "r"))
@@ -144,9 +88,75 @@ class Experiment:
                 logging.debug(
                     "Data path in JSON in %s" % exp_info["data_path"]
                 )
-        self.DT = exp_info["DT"]
-        self.pixel_size = exp_info["pixel_size"]
-        self.file_pattern = exp_info["file_pattern"]
+                
+        if self.pixel_size is None and "pixel_size" in exp_info:
+            self.pixel_size = exp_info["pixel_size"]
+        elif self.pixel_size is not None:
+            exp_info["pixel_size"] = self.pixel_size
+        else:
+            pixel_size = 0.097
+            try:
+                pixel_size = float(
+                    input("Pixel size, in microns (default is 0.097) : ")
+                )
+            except BaseException as e:
+                print(e)
+                print(
+                    "Incorrect value, keeping default : %.2f um"
+                    % pixel_size
+                )
+            self.pixel_size = pixel_size
+            exp_info["pixel_size"] = self.pixel_size
+            
+        if self.DT is None and "DT" in exp_info:
+            self.DT = exp_info["DT"]
+        elif self.DT is not None:
+            exp_info["DT"] = self.DT
+        else:
+            DT = 0.03
+            try:
+                DT = float(
+                    input(
+                        "Time interval between successive frames, in seconds (default is 0.03) : "
+                    )
+                )
+            except BaseException as e:
+                print(e)
+                print("Incorrect value, keeping default : %.2f s" % DT)
+            self.DT = DT
+            exp_info["DT"] = DT
+            
+        if self.file_pattern is None and "file_pattern" in exp_info:
+            self.file_pattern = exp_info["file_pattern"]
+        elif self.file_pattern is not None:
+            exp_info["file_pattern"] = self.file_pattern
+        else:
+            print("Using a new file pattern")
+            file_pattern = ".tif"
+            try:
+                input_file_pattern = str(
+                    input('File pattern (default is ".tif") : ')
+                )
+                if len(input_file_pattern) > 0:
+                    file_pattern = input_file_pattern
+
+            except BaseException as e:
+                print(e)
+                print("Incorrect value, keeping default : %s s" % file_pattern)
+            self.file_pattern = file_pattern
+            
+        
+
+        exp_info = {
+            "data_path": self.data_folder,
+            "pixel_size": self.pixel_size,
+            "file_pattern": self.file_pattern,
+            "DT": self.DT,
+        }
+        json.dump(
+            exp_info,
+            open(json_path, "w"),
+        )
 
     @property
     def index_df(self) -> pd.DataFrame:
@@ -253,8 +263,7 @@ class Experiment:
         logging.info("Removed in index the row %s" % f)
 
     def scan_folder(self) -> list:
-        os.chdir(self.data_folder)
-        roi_files = glob("**%s*%s" % (os.path.sep, self.file_pattern), recursive=True)
+        roi_files = glob(os.path.join(self.data_folder,"**","*%s" % self.file_pattern), recursive=True)
         roi_files = [
             f for f in roi_files if os.path.getsize(f) > 1e6
         ]  # Don't consider files of less than 1Mb

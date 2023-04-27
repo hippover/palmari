@@ -16,6 +16,7 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Signal
 from magicgui.widgets import FileEdit, FloatSpinBox, LineEdit, ProgressBar
+import dask
 
 
 class PipelineRunner(QWidget):
@@ -25,7 +26,7 @@ class PipelineRunner(QWidget):
     nFilesChanged = Signal(int)
     nameProcessingFile = Signal(str)
 
-    def __init__(self):
+    def __init__(self, napari_viewer: Viewer):
         super().__init__()
         self.setup_ui()
         self.running = False
@@ -52,6 +53,9 @@ class PipelineRunner(QWidget):
         self.progressRunning.connect(showPgBar)
         self.nFilesChanged.connect(updateNFiles)
         self.nameProcessingFile.connect(updateFileName)
+        
+        self.viewer = napari_viewer
+        self.viewer.reset_view()
 
     def setup_ui(self):
         main_layout = QVBoxLayout()
@@ -172,12 +176,13 @@ class PipelineRunner(QWidget):
         worker.start()
         
     def _run_started(self):
-        assert self.exp is not None
-        self.nFilesChanged.emit(len(self.exp.scan_folder()))
+        exp = self.exp
+        assert exp is not None
+        self.nFilesChanged.emit(len(exp.scan_folder()))
         self.progressChanged.emit(0)
         self.progressRunning.emit(True)
     
-    def _run_finished(self, exc):
+    def _run_finished(self):
         self.progressRunning.emit(False)
         self.enable_run_button()
         
@@ -189,6 +194,9 @@ class PipelineRunner(QWidget):
 
     @thread_worker
     def _run_pipeline(self):
+        
+        dask.config.set(scheduler='processes') 
+        
         exp = self.exp
         for i, f in enumerate(exp):
             yield (i, f)
@@ -271,12 +279,16 @@ class PipelineRunner(QWidget):
 
     def enable_run_button(self):
         exp = self.exp
+        exp_has_files = False
         if self.running:
             self.run_button.setText("Processing...")
         else:
             if exp is not None:
+                files = exp.scan_folder()
+                n_files = len(files)
+                exp_has_files = n_files > 0
                 self.run_button.setText(
-                    "Process %d files !" % len(exp.scan_folder())
+                    "Process %d files !" % n_files
                 )
             else:
                 self.run_button.setText("Process (?) files !")
@@ -285,6 +297,7 @@ class PipelineRunner(QWidget):
             (self.tp is not None)
             and (self.export_folder is not None)
             and (self.input_folder is not None)
+            and exp_has_files
             and (not self.running)
         )
 
@@ -293,6 +306,7 @@ class PipelineRunner(QWidget):
 
     def setExpPattern(self, p: str):
         self.file_pattern = p
+        self.enable_run_button()
 
     def setExpDT(self, DT: float):
         self.DT = DT
