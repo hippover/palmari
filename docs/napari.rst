@@ -5,7 +5,7 @@ Napari plugin
 Processing a single experiment
 ------------------------------
 
-To process an microscope recording using Palmari, open Napari and click on ``Pulgins > palmari > Run PALMari on file...``.
+To process an microscope recording using Palmari, open Napari and click on ``Pulgins > palmari > Run Palmari on file...``.
 The Napari panel appears (by default, on the right of your screen).
 
 Do not forget, in the "Input" section, to enter the pixel size and exposition time of the recording !
